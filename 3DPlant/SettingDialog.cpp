@@ -13,11 +13,7 @@ IMPLEMENT_DYNAMIC(SettingDialog, CDialog)
 SettingDialog::SettingDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(SettingDialog::IDD, pParent)
 	, mIterations(1)
-	, mStepMin(0)
-	, mStepMax(0)
-	, mRotAngleMin(0)
-	, mRotAngleMax(0)
-	, mTrunkSize(0)
+	
 {
 
 }
@@ -44,6 +40,7 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT4, mRule3Edit);
 	DDX_Control(pDX, IDC_EDIT5, mRule4Edit);
 	DDX_Control(pDX, IDC_EDIT6, mRule5Edit);
+	DDX_Control(pDX, IDC_EDIT11, mStartEdit);
 }
 
 
@@ -52,8 +49,35 @@ BEGIN_MESSAGE_MAP(SettingDialog, CDialog)
 END_MESSAGE_MAP()
 
 
-// SettingDialog 消息处理程序
+void SettingDialog::AddRules(CString& text)
+{
+	text.Remove(' ');
+	std::wstring ws(text.GetBuffer(text.GetLength()));
+	std::string s(ws.length(), ' ');
+	std::copy(ws.begin(), ws.end(), s.begin());
 
+	if (s.length() >= 2 && s[1] == '=')
+	{
+		char k = s[0];
+		std::string v(s.begin() + 2, s.end());
+		std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.find(k);
+		if (it != mLSparamiter.mRules.end())
+		{
+			(it->second).push_back(v);
+		}
+		else
+		{
+			std::vector<std::string> vs;
+			vs.push_back(v);
+			mLSparamiter.mRules.insert(std::make_pair(k, vs));
+		}
+	}
+	else
+	{
+		MessageBox(0, text+L" 不符合文法规则！", 0);
+	}
+}
+// SettingDialog 消息处理程序
 
 void SettingDialog::OnBnClickedOk()
 {
@@ -61,34 +85,31 @@ void SettingDialog::OnBnClickedOk()
 
 	CString text;
 	mIterationsEdit.GetWindowText(text);
-	mIterations = _ttoi(text);
+	mLSparamiter.mIterations = _ttoi(text);
 	
 	mStepMinEdit.GetWindowText(text);
-	mStepMin = _ttof(text);
+	mLSparamiter.mStepMin = _ttof(text);
 	mStepMaxEdit.GetWindowText(text);
-	mStepMax = _ttof(text);
+	mLSparamiter.mStepMax = _ttof(text);
 	mRotAngleMinEdit.GetWindowText(text);
-	mRotAngleMin = _ttof(text);
+	mLSparamiter.mRotAngleMin = _ttof(text);
 	mRotAngleMaxEdit.GetWindowText(text);
-	mRotAngleMax = _ttof(text);
+	mLSparamiter.mRotAngleMax = _ttof(text);
 	mTrunkSizeEdit.GetWindowText(text);
-	mTrunkSize = _ttof(text);
+	mLSparamiter.mTrunkSize = _ttof(text);
 
+	mStartEdit.GetWindowText(text);
+	mLSparamiter.mStart = text[0];
 	mRule1Edit.GetWindowText(text);
-	text.Remove(' ');
-	if (text.GetLength() >= 2)
-	{
-		char k = text[0];
-		if (text[1] == '=')
-		{
-			
-		}
-	}
-	
+	AddRules(text);
 	mRule2Edit.GetWindowText(text);
+	AddRules(text);
 	mRule3Edit.GetWindowText(text);
+	AddRules(text);
 	mRule4Edit.GetWindowText(text);
+	AddRules(text);
 	mRule5Edit.GetWindowText(text);
+	AddRules(text);
 
 	//--
 	mpSettingOkClick();

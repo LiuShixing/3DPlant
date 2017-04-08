@@ -81,7 +81,7 @@ void UpdatePlant()
 	std::vector<Vertex::PosColor> vertexs;
 	std::vector<UINT> indices;
 
-	gLS.CreatePlant(vertexs, indices, gSettingDia.mIterations);
+	gLS.CreatePlant(vertexs, indices, gSettingDia.mLSparamiter);
 	gD3d.ReleaseVIBuffer();
 	gD3d.CreateVIBuffer(vertexs, indices);
 	gD3d.Draw();

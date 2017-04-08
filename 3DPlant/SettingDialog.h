@@ -5,6 +5,7 @@
 #include<vector>
 #include<map>
 #include "afxwin.h"
+#include"LSystem.h"
 
 // SettingDialog ¶Ô»°¿ò
 
@@ -24,26 +25,23 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	UINT mIterations;
 	afx_msg void OnBnClickedOk();
+
+	void AddRules(CString& text);
 
 	void (*mpSettingOkClick)();
 	CEdit mIterationsEdit;
 	CEdit mStepMinEdit;
-	float mStepMin;
 	CEdit mStepMaxEdit;
-	float mStepMax;
 	CEdit mRotAngleMinEdit;
-	float mRotAngleMin;
 	CEdit mRotAngleMaxEdit;
-	float mRotAngleMax;
 	CEdit mTrunkSizeEdit;
-	float mTrunkSize;
 	CEdit mRule1Edit;
 	CEdit mRule2Edit;
 	CEdit mRule3Edit;
 	CEdit mRule4Edit;
 	CEdit mRule5Edit;
 
-	std::map<char, std::vector<std::string> > mRules;
+	LSparameter mLSparamiter;
+	CEdit mStartEdit;
 };

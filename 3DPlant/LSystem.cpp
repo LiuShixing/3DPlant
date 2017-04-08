@@ -2,7 +2,46 @@
 #include "LSystem.h"
 
 
-LSystem::LSystem() :mIterations(6), ma(0.0f), md(0.0f)
+LSparameter::LSparameter()
+{
+	mIterations = 3;
+	mStepMin = 1.0f;
+	mStepMax = 5.0f;
+	mRotAngleMin = (XM_PI*5.0f) / 36.0f;
+	mRotAngleMax = XM_PI / 3.0f;
+	mTrunkSize = 1.0f;
+}
+
+std::string LSparameter::GetRandomRule(char key)
+{
+	srand(time(NULL));
+	std::map<char, std::vector<std::string> >::iterator it = mRules.find(key);
+	if (it != mRules.end())
+	{
+		int length = (it->second).size();
+		int index = rand() % length;
+		return (it->second)[index];
+	}
+	std::string s("");
+	s += key;
+	return s;
+}
+
+float LSparameter::GetRandomStep()
+{
+	srand(time(NULL));
+	float x = (float)rand() / (float)(RAND_MAX + 1);
+	return mStepMin + (mStepMax - mStepMin) * x;
+}
+
+float LSparameter::GetRandomAngle()
+{
+	srand(time(NULL));
+	float x = (float)rand() / (float)(RAND_MAX + 1);
+	return mRotAngleMin + (mRotAngleMax - mRotAngleMin) * x;
+}
+
+LSystem::LSystem() : ma(0.0f), md(0.0f)
 {
 	mProduction = "F[xyzP]xyzP";
 }
@@ -12,28 +51,22 @@ LSystem::~LSystem()
 {
 }
 
-void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, int iterations)
+void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param)
 {
 	vertexs.clear();
 	indices.clear();
 
 	//mProduction = "Fz-[[X]z+X]z+F[z+FX]z-X";
-	mProduction = "F[z+x-X][z-x-X][x+X]";
-	std::string plantStr = mProduction;
+	//mProduction = "F[z+x-X][z-x-X][x+X]";
+	std::string plantStr = param.GetRandomRule(param.mStart);
+
+	UINT iterations = param.mIterations;
 	while (--iterations)
 	{
 		std::string tmpstr = "";
 		for (int i = 0; i < plantStr.size(); i++)
 		{
-			char ch = plantStr[i];
-			if (ch == 'X')
-			{
-				tmpstr += mProduction;
-			}
-			else
-			{
-				tmpstr += ch;
-			}
+			tmpstr += param.GetRandomRule(plantStr[i]);
 		}
 		plantStr = tmpstr;
 	}
@@ -54,9 +87,6 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	stateQue.push(orinState);
 
 
-	md = 2.0f;
-	ma = (XM_PI*5.0f) / 36.0f;
-
 	//	plantStr = "F[z+x-F][z-x-F]x+F";
 	int count = 0;
 	float stepDelta = 0.5f;
@@ -64,7 +94,6 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	std::stack<State> stateStack; std::cout << std::endl;
 	for (int i = 0; i < plantStr.size(); i++)
 	{
-		
 	//	std::cout << plantStr[i] << std::endl;;
 		switch (plantStr[i])
 		{

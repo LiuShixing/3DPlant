@@ -5,7 +5,9 @@
 #include<string>
 #include<stack>
 #include<queue>
+#include<map>
 #include <xnamath.h>
+#include<ctime>
 #include"Vertex.h"
 /*
 ²ÎÊý£º
@@ -39,15 +41,33 @@ struct State
 	XMFLOAT3 v;
 	UINT     verIndiex;
 };
+
+class LSparameter
+{
+public:
+	UINT  mIterations;  
+	float mStepMin;
+	float mStepMax;
+	float mRotAngleMin;
+	float mRotAngleMax;
+	float mTrunkSize;
+
+	char  mStart;
+	std::map<char, std::vector<std::string> > mRules;
+
+	std::string GetRandomRule(char key);
+	float      GetRandomStep();
+	float      GetRandomAngle();
+};
 class LSystem
 {
 public:
 	LSystem();
 	~LSystem();
-	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, int iterations);
+	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
 private:
 	std::string mProduction;
-	int        mIterations;
+	LSparameter mParamiter;
 
 	float md;
 	float ma;
