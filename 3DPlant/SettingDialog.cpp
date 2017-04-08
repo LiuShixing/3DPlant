@@ -12,8 +12,6 @@ IMPLEMENT_DYNAMIC(SettingDialog, CDialog)
 
 SettingDialog::SettingDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(SettingDialog::IDD, pParent)
-	, mIterations(1)
-	
 {
 
 }
@@ -25,22 +23,76 @@ SettingDialog::~SettingDialog()
 
 void SettingDialog::DoDataExchange(CDataExchange* pDX)
 {
-	std::cout << "change" << std::endl;
 	CDialog::DoDataExchange(pDX);
-	DDX_Text(pDX, IDC_ITERATIONS, mIterations);
-	DDV_MinMaxUInt(pDX, mIterations, 1, 1000);
+
+	std::vector<std::string> rules(6,"");
+	int index = 0;
+	for (std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
+	{
+		char k = it->first;
+		for (int i = 0; i < it->second.size(); i++)
+		{
+			rules[index] = k;
+			rules[index] += "=";
+			rules[index] += (it->second)[i];
+			index++;
+		}
+	}
+
 	DDX_Control(pDX, IDC_ITERATIONS, mIterationsEdit);
+	DDX_Text(pDX, IDC_ITERATIONS, mLSparamiter.mIterations);
+
 	DDX_Control(pDX, IDC_EDIT1, mStepMinEdit);
+	DDX_Text(pDX, IDC_EDIT1, mLSparamiter.mStepMin);
+
 	DDX_Control(pDX, IDC_EDIT7, mStepMaxEdit);
+	DDX_Text(pDX, IDC_EDIT7, mLSparamiter.mStepMax);
+
 	DDX_Control(pDX, IDC_EDIT8, mRotAngleMinEdit);
+	DDX_Text(pDX, IDC_EDIT8, mLSparamiter.mRotAngleMin);
+
 	DDX_Control(pDX, IDC_EDIT9, mRotAngleMaxEdit);
+	DDX_Text(pDX, IDC_EDIT9, mLSparamiter.mRotAngleMax);
+
 	DDX_Control(pDX, IDC_EDIT10, mTrunkSizeEdit);
-	DDX_Control(pDX, IDC_EDIT2, mRule1Edit);
-	DDX_Control(pDX, IDC_EDIT3, mRule2Edit);
-	DDX_Control(pDX, IDC_EDIT4, mRule3Edit);
-	DDX_Control(pDX, IDC_EDIT5, mRule4Edit);
-	DDX_Control(pDX, IDC_EDIT6, mRule5Edit);
+	DDX_Text(pDX, IDC_EDIT10, mLSparamiter.mTrunkSize);
+
+	CString Start(mLSparamiter.mStart);
 	DDX_Control(pDX, IDC_EDIT11, mStartEdit);
+	DDX_Text(pDX, IDC_EDIT11, Start);
+
+	std::wstring ws;
+
+	DDX_Control(pDX, IDC_EDIT2, mRule1Edit);
+	ws.resize(rules[0].size());
+	std::copy(rules[0].begin(), rules[0].end(), ws.begin());
+	CString cs1(ws.c_str());
+	DDX_Text(pDX, IDC_EDIT2, cs1);
+
+	DDX_Control(pDX, IDC_EDIT3, mRule2Edit);
+	ws.resize(rules[1].size());
+	std::copy(rules[1].begin(), rules[1].end(), ws.begin());
+	CString cs2(ws.c_str());
+	DDX_Text(pDX, IDC_EDIT3, cs2);
+
+	DDX_Control(pDX, IDC_EDIT4, mRule3Edit);
+	ws.resize(rules[2].size());
+	std::copy(rules[2].begin(), rules[2].end(), ws.begin());
+	CString cs3(ws.c_str());
+	DDX_Text(pDX, IDC_EDIT4, cs3);
+
+	DDX_Control(pDX, IDC_EDIT5, mRule4Edit);
+	ws.resize(rules[3].size());
+	std::copy(rules[3].begin(), rules[3].end(), ws.begin());
+	CString cs4(ws.c_str());
+	DDX_Text(pDX, IDC_EDIT5, cs4);
+
+	DDX_Control(pDX, IDC_EDIT6, mRule5Edit);
+	ws.resize(rules[4].size());
+	std::copy(rules[4].begin(), rules[4].end(), ws.begin());
+	CString cs5(ws.c_str());
+	DDX_Text(pDX, IDC_EDIT6, cs5);
+
 }
 
 
@@ -72,7 +124,7 @@ void SettingDialog::AddRules(CString& text)
 			mLSparamiter.mRules.insert(std::make_pair(k, vs));
 		}
 	}
-	else
+	else if (s.length() != 0)
 	{
 		MessageBox(0, text+L" 不符合文法规则！", 0);
 	}
@@ -87,7 +139,7 @@ void SettingDialog::OnBnClickedOk()
 	mIterationsEdit.GetWindowText(text);
 	mLSparamiter.mIterations = _ttoi(text);
 	
-	mStepMinEdit.GetWindowText(text);
+	mStepMinEdit.GetWindowText(text); 
 	mLSparamiter.mStepMin = _ttof(text);
 	mStepMaxEdit.GetWindowText(text);
 	mLSparamiter.mStepMax = _ttof(text);
@@ -112,5 +164,12 @@ void SettingDialog::OnBnClickedOk()
 	AddRules(text);
 
 	//--
-	mpSettingOkClick();
+	if (mLSparamiter.mStart != ' ' && mLSparamiter.mRules.size() > 0)
+	{
+		mpSettingOkClick();
+	}
+	else
+	{
+		MessageBox(0, L" 不符合文法规则！", 0);
+	}
 }

@@ -102,17 +102,26 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 	if (isInit)
 	{
 		isInit = false;
+
+		//创建设置对话框
+		gSettingDia.Create(IDD_SETTINGDIALOG);
+		gSettingDia.mpSettingOkClick = UpdatePlant;
+		gSettingDia.ShowWindow(SW_SHOWNORMAL);   //显示默认植物参数
+
+		//初始化Direct3D
 		RECT clientR;
 		GetClientRect(&clientR);
 		gD3d.Init(m_hWnd, clientR.right - clientR.left, clientR.bottom - clientR.top, L"HLSL/pos_color.hlsl");
+		
+		//生成默认植物
+		std::cout << gSettingDia.mLSparamiter.mRules['X'][0] << std::endl;
 		std::vector<Vertex::PosColor> vertexs;
-		std::vector<UINT> indices;
-		int iterations = 7;
-		gLS.CreatePlant(vertexs, indices, iterations);
+		std::vector<UINT> indices; 
+		gLS.CreatePlant(vertexs, indices, gSettingDia.mLSparamiter);
 		gD3d.CreateVIBuffer(vertexs, indices);
-		gSettingDia.Create(IDD_SETTINGDIALOG);
-		gSettingDia.mpSettingOkClick = UpdatePlant;
+		
 	}
+	//绘制
 	gD3d.Draw();
 }
 

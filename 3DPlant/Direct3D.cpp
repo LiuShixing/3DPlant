@@ -327,19 +327,19 @@ bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vecto
 
 	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpVB)))
 		return 0;
-
+	
 	//index
 	mIndexCount = indices.size();
 	D3D11_BUFFER_DESC iDesc = { 0 };
 	iDesc.ByteWidth = mIndexCount * sizeof(UINT);
 	iDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	iDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
+	
 	D3D11_SUBRESOURCE_DATA ibdata = { 0 };
 	ibdata.pSysMem = &indices[0];
 	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpIB)))
 		return 0;
-
+	
 	return 1;
 }
 

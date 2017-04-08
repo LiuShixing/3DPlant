@@ -45,18 +45,19 @@ struct State
 class LSparameter
 {
 public:
+	LSparameter();
+
 	UINT  mIterations;  
 	float mStepMin;
 	float mStepMax;
 	float mRotAngleMin;
 	float mRotAngleMax;
 	float mTrunkSize;
-
 	char  mStart;
 	std::map<char, std::vector<std::string> > mRules;
 
 	std::string GetRandomRule(char key);
-	float      GetRandomStep();
+	float      GetRandomStep(float att=0.0f);  //att 是步长衰减量
 	float      GetRandomAngle();
 };
 class LSystem
@@ -66,10 +67,6 @@ public:
 	~LSystem();
 	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
 private:
-	std::string mProduction;
 	LSparameter mParamiter;
-
-	float md;
-	float ma;
 };
 
