@@ -15,13 +15,18 @@ LSparameter::LSparameter()
 	std::vector<std::string> vs;
 	std::string defaultRule("F[z+x-X][z-x-X][x+X]");
 	vs.push_back(defaultRule);
+	vs.push_back("F[z+x-X][z-x-X]");
+	vs.push_back("F[z+x-X][x+X]");
+	vs.push_back("F[z-x-X][x+X]");
+	vs.push_back("F[z+x-X]");
 	mRules['X'] = vs;
 	mStart = 'X';
+
+	srand(time(NULL));
 }
 
 std::string LSparameter::GetRandomRule(char key)
 {
-	srand(time(NULL));
 	std::map<char, std::vector<std::string> >::iterator it = mRules.find(key);
 	if (it != mRules.end())
 	{
@@ -36,7 +41,6 @@ std::string LSparameter::GetRandomRule(char key)
 
 float LSparameter::GetRandomStep(float att)
 {
-	srand(time(NULL));
 	float x = (float)rand() / (float)(RAND_MAX + 1);
 	float tmin = mStepMin - att > 0.0f ? mStepMin - att : mStepMin;
 	float tmax = mStepMax - att > 0.0f ? mStepMax - att : mStepMin;
@@ -45,7 +49,6 @@ float LSparameter::GetRandomStep(float att)
 
 float LSparameter::GetRandomAngle()
 {
-	srand(time(NULL));
 	float x = (float)rand() / (float)(RAND_MAX + 1);
 	return mRotAngleMin + (mRotAngleMax - mRotAngleMin) * x;
 }
@@ -64,8 +67,6 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	vertexs.clear();
 	indices.clear();
 
-	//mProduction = "Fz-[[X]z+X]z+F[z+FX]z-X";
-	//mProduction = "F[z+x-X][z-x-X][x+X]";
 	std::string plantStr = param.GetRandomRule(param.mStart);
 
 	UINT iterations = param.mIterations;
@@ -89,10 +90,6 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	orinVer.color = reinterpret_cast<const float*>(&Colors::Green);
 	vertexs.push_back(orinVer);
 
-
-	//	plantStr = "F[z+x-F][z-x-F]x+F";
-	int count = 0;
-
 	//²½³¤Ë¥¼õ
 	float stepDelta = 0.5f;
 	float stepAtt = 0.0f;
@@ -112,8 +109,6 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 								
 					XMVECTOR NPOS = OPOS + V*param.GetRandomStep(stepAtt);
 					XMStoreFloat3(&newState.pos, NPOS);
-			
-					count++;
 
 					Vertex::PosColor newVer;
 					newVer.pos = newState.pos;
@@ -137,7 +132,6 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					XMStoreFloat3(&curState.v, NewV);
 					break;
 		}
-
 		case 'y':
 		{
 					float tmpa = param.GetRandomAngle();

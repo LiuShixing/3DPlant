@@ -152,6 +152,8 @@ void SettingDialog::OnBnClickedOk()
 
 	mStartEdit.GetWindowText(text);
 	mLSparamiter.mStart = text[0];
+
+	mLSparamiter.mRules.clear();
 	mRule1Edit.GetWindowText(text);
 	AddRules(text);
 	mRule2Edit.GetWindowText(text);
