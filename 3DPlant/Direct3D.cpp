@@ -7,6 +7,7 @@ mAppPaused(false),
 mMinimized(false),
 mMaximized(false),
 mResizing(false),
+mEnable4xMsaa(true),
 m4xMsaaQuality(0),
 
 md3dDevice(0),
@@ -92,8 +93,19 @@ bool Direct3D::Init(HWND mainWnd, int clientWidth, int clientHeight, const std::
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	sd.SampleDesc.Count = 1;
-	sd.SampleDesc.Quality = 0;
+
+/// Use 4X MSAA? 
+	if (mEnable4xMsaa)
+	{
+		sd.SampleDesc.Count = 4;
+		sd.SampleDesc.Quality = m4xMsaaQuality - 1;
+	}
+	// No MSAA
+	else
+	{
+		sd.SampleDesc.Count = 1;
+		sd.SampleDesc.Quality = 0;
+	}
 
 
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -168,8 +180,19 @@ void Direct3D::OnResize(int clientWidth, int clientHeight)
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.ArraySize = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
+	
+	// Use 4X MSAA? --must match swap chain MSAA values.
+	if (mEnable4xMsaa)
+	{
+		depthStencilDesc.SampleDesc.Count = 4;
+		depthStencilDesc.SampleDesc.Quality = m4xMsaaQuality - 1;
+	}
+	// No MSAA
+	else
+	{
+		depthStencilDesc.SampleDesc.Count = 1;
+		depthStencilDesc.SampleDesc.Quality = 0;
+	}
 	
 
 	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -202,7 +225,7 @@ void Direct3D::OnResize(int clientWidth, int clientHeight)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*XM_PI, aspectRatio, 1.0f, 1000.0f);
 	XMStoreFloat4x4(&mProj, P);
 }
-void Direct3D::Draw()
+void Direct3D::Draw(std::vector<Trunk>& trunks)
 {
 	//--------------------------------update--------------------------
 	float x = mRadius*sinf(mPhi)*cosf(mTheta);
@@ -230,7 +253,7 @@ void Direct3D::Draw()
 	XMMATRIX worldViewProj = world*View*Proj;
 	mWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 
-	//--------------------------------draw----------------------------
+	//--------------------------------draw------------------------------------------------------------------
 	//std::cout << "d3d draw" << std::endl;
 	this->md3dImmediateContext->ClearRenderTargetView(this->mRenderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	this->md3dImmediateContext->ClearDepthStencilView(this->mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -250,7 +273,34 @@ void Direct3D::Draw()
 		mTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
 		this->md3dImmediateContext->DrawIndexed(mIndexCount, 0, 0);
 	}
-	
+
+	// draw trunk---------------------------------------------------------------------------------------
+
+	//update trunk
+	mDiffuseMap->SetResource(mShaderSView);
+	md3dImmediateContext->IASetInputLayout(mPosTexLayout);
+	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	stride = sizeof(Vertex::PosTex);
+	offset = 0;
+	this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpTrunkVB, &stride, &offset);
+	this->md3dImmediateContext->IASetIndexBuffer(mpTrunkIB, DXGI_FORMAT_R32_UINT, 0);
+	for (int i = 0; i < trunks.size(); i++)
+	{
+		XMMATRIX sizeScal = XMMatrixScaling(trunks[i].sizeScal, trunks[i].scalY, trunks[i].sizeScal);
+		world = XMMatrixTranslation(trunks[i].pos.x, trunks[i].pos.y, trunks[i].pos.z);
+		XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&trunks[i].rotAxis), trunks[i].angle);
+		worldViewProj = sizeScal*rot*world*View*Proj;
+		mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+
+		techDesc;
+		mPosTexTech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			mPosTexTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
+			this->md3dImmediateContext->DrawIndexed(mTrunkIndexCount, 0, 0);
+		}
+	}
 	//-----------------------------------
 	this->mSwapChain->Present(0, 0);
 }
@@ -269,24 +319,53 @@ bool Direct3D::BuildHLSL(const std::wstring& filename)
 	hr = D3DX11CompileFromFile(filename.c_str(), 0, 0, 0, "fx_5_0", flag, 0, 0, &shader, &errMSG, 0);
 	if (errMSG)
 	{
-		MessageBoxA(NULL, (char*)errMSG->GetBufferPointer(), "ShaderCompileError", MB_OK);
+		MessageBoxA(mhMainWnd, (char*)errMSG->GetBufferPointer(), "ShaderCompileError", MB_OK);
 		errMSG->Release();
 		return 0;
 	}
 	if (FAILED(hr))
 	{
-		MessageBox(NULL, L"CompileShader错误!", L"错误", MB_OK);
+		MessageBox(mhMainWnd, L"CompileShader错误!", L"错误", MB_OK);
 		return 0;
 	}
 	if (FAILED(::D3DX11CreateEffectFromMemory(shader->GetBufferPointer(), shader->GetBufferSize(), 0, md3dDevice, &mpEffect)))
 	{
-		MessageBox(NULL, L"D3DX11CreateEffectFromMemory错误!", L"错误", MB_OK);
+		MessageBox(mhMainWnd, L"D3DX11CreateEffectFromMemory错误!", L"错误", MB_OK);
 		return 0;
 	}
 	ReleaseCOM(shader);
 
 	mTech = mpEffect->GetTechniqueByName("PosColTech");
 	mWorldViewProj = mpEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
+
+	//build 2
+	ID3D10Blob* shader2(NULL);
+	ID3D10Blob* errMSG2(NULL);
+	const std::wstring filename2 = L"HLSL/pos_tex.hlsl";
+	hr = D3DX11CompileFromFile(filename2.c_str(), 0, 0, 0, "fx_5_0", flag, 0, 0, &shader2, &errMSG2, 0);
+	if (errMSG2)
+	{
+		MessageBoxA(mhMainWnd, (char*)errMSG2->GetBufferPointer(), "ShaderCompileError    2", MB_OK);
+		errMSG2->Release();
+		return 0;
+	}
+	if (FAILED(hr))
+	{
+		MessageBox(mhMainWnd, L"CompileShader错误!   2", L"错误", MB_OK);
+		return 0;
+	}
+	if (FAILED(::D3DX11CreateEffectFromMemory(shader2->GetBufferPointer(), shader2->GetBufferSize(), 0, md3dDevice, &mpEffect)))
+	{
+		MessageBox(mhMainWnd, L"D3DX11CreateEffectFromMemory错误!   2", L"错误", MB_OK);
+		return 0;
+	}
+	ReleaseCOM(shader2);
+	
+	mPosTexTech = mpEffect->GetTechniqueByName("PosTexTech");
+	mPosTexWorldViewProj = mpEffect->GetVariableByName("gWorldViewProj")->AsMatrix();
+	mDiffuseMap = mpEffect->GetVariableByName("gDiffuseMap")->AsShaderResource();
+
+	std::cout << "BuildHLSL  success" << std::endl;
 	return true;
 }
 
@@ -311,6 +390,26 @@ bool Direct3D::InitLayout()
 		return 0;
 	}
 
+	//layout 2
+	std::cout << " in initlayout " << std::endl;
+	if (!mPosTexTech)
+	{
+		MessageBox(0, L"mPosTexTech=NULL!! failed", 0, 0);
+	}
+	const int count2 = 2;
+	D3DX11_PASS_DESC PassDesc2;
+	D3D11_INPUT_ELEMENT_DESC PosTexDesc[count2] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	mPosTexTech->GetPassByIndex(0)->GetDesc(&PassDesc2);
+	if (FAILED(md3dDevice->CreateInputLayout(PosTexDesc, count2, PassDesc2.pIAInputSignature,
+		PassDesc2.IAInputSignatureSize, &mPosTexLayout)))
+	{
+		std::cout << "init mPosTexLayout fail" << std::endl;
+		return 0;
+	}
 	return true;
 }
 
@@ -339,12 +438,213 @@ bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vecto
 	ibdata.pSysMem = &indices[0];
 	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpIB)))
 		return 0;
-	
+
 	return 1;
 }
 
+bool Direct3D::CreateTrunkVIBuffer(std::vector<Vertex::PosTex>& vertexs, std::vector<UINT>& indices)
+{
+	D3D11_BUFFER_DESC vDesc = { 0 };
+	vDesc.ByteWidth = vertexs.size() * sizeof(Vertex::PosTex);
+	vDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	vDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+
+	D3D11_SUBRESOURCE_DATA vbdata = { 0 };
+	vbdata.pSysMem = &vertexs[0];
+
+	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpTrunkVB)))
+		return 0;
+
+	//index
+	mIndexCount = indices.size();
+	D3D11_BUFFER_DESC iDesc = { 0 };
+	iDesc.ByteWidth = mIndexCount * sizeof(UINT);
+	iDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	iDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA ibdata = { 0 };
+	ibdata.pSysMem = &indices[0];
+	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpTrunkIB)))
+		return 0;
+
+	return 1;
+}
 void Direct3D::ReleaseVIBuffer()
 {
 	ReleaseCOM(mpVB);
 	ReleaseCOM(mpIB);
+	ReleaseCOM(mpTrunkVB);
+	ReleaseCOM(mpTrunkIB);
+}
+
+
+void Direct3D::CreateCylinder(float bottomRadius, float topRadius, float height, 
+	UINT sliceCount, UINT stackCount, std::vector<Vertex::PosTex>& vertexs, std::vector<UINT>& indices)
+{
+	vertexs.clear();
+	indices.clear();
+
+	//
+	// Build Stacks.
+	// 
+
+	float stackHeight = height / stackCount;
+
+	// Amount to increment radius as we move up each stack level from bottom to top.
+	float radiusStep = (topRadius - bottomRadius) / stackCount;
+
+	UINT ringCount = stackCount + 1;
+
+	// Compute vertices for each stack ring starting at the bottom and moving up.
+	for (UINT i = 0; i < ringCount; ++i)
+	{
+	//	float y = -0.5f*height + i*stackHeight;
+		float y = i*stackHeight;             //模型中心在原点
+		float r = bottomRadius + i*radiusStep;
+
+		// vertices of ring
+		float dTheta = 2.0f*XM_PI / sliceCount;
+		for (UINT j = 0; j <= sliceCount; ++j)
+		{
+			Vertex::PosTex vertex;
+
+			float c = cosf(j*dTheta);
+			float s = sinf(j*dTheta);
+
+			vertex.pos = XMFLOAT3(r*c, y, r*s);
+
+			vertex.tex.x = (float)j / sliceCount;
+			vertex.tex.y = 1.0f - (float)i / stackCount;
+
+			vertexs.push_back(vertex);
+		}
+	}
+
+	// Add one because we duplicate the first and last vertex per ring
+	// since the texture coordinates are different.
+	UINT ringVertexCount = sliceCount + 1;
+
+	// Compute indices for each stack.
+	for (UINT i = 0; i < stackCount; ++i)
+	{
+		for (UINT j = 0; j < sliceCount; ++j)
+		{
+			indices.push_back(i*ringVertexCount + j);
+			indices.push_back((i + 1)*ringVertexCount + j);
+			indices.push_back((i + 1)*ringVertexCount + j + 1);
+
+			indices.push_back(i*ringVertexCount + j);
+			indices.push_back((i + 1)*ringVertexCount + j + 1);
+			indices.push_back(i*ringVertexCount + j + 1);
+		}
+	}
+
+	BuildCylinderTopCap(bottomRadius, topRadius, height, sliceCount, stackCount, vertexs, indices);
+	BuildCylinderBottomCap(bottomRadius, topRadius, height, sliceCount, stackCount, vertexs, indices);
+	mTrunkIndexCount = indices.size();
+}
+
+void Direct3D::BuildCylinderTopCap(float bottomRadius, float topRadius, float height,
+	UINT sliceCount, UINT stackCount, std::vector<Vertex::PosTex>& vertexs, std::vector<UINT>& indices)
+{
+	UINT baseIndex = (UINT)vertexs.size();
+
+//	float y = 0.5f*height;
+	float y = height;  //模型中心在原点
+	float dTheta = 2.0f*XM_PI / sliceCount;
+
+	// Duplicate cap ring vertices because the texture coordinates and normals differ.
+	for (UINT i = 0; i <= sliceCount; ++i)
+	{
+		Vertex::PosTex ver;
+
+		ver.pos.x = topRadius*cosf(i*dTheta);
+		ver.pos.y = y;
+		ver.pos.z = topRadius*sinf(i*dTheta);
+
+		// Scale down by the height to try and make top cap texture coord area
+		// proportional to base.
+		ver.tex.x = ver.pos.x / height + 0.5f;
+		ver.tex.y = ver.pos.z / height + 0.5f;
+
+		vertexs.push_back(ver);
+	}
+
+	// Cap center vertex.
+	Vertex::PosTex ver;
+	ver.pos.x = 0.0f;
+	ver.pos.y = y;
+	ver.pos.z = 0.0f;
+	ver.tex.x = 0.5f;
+	ver.tex.y = 0.5f;
+	vertexs.push_back(ver);
+
+	// Index of center vertex.
+	UINT centerIndex = (UINT)vertexs.size() - 1;
+
+	for (UINT i = 0; i < sliceCount; ++i)
+	{
+		indices.push_back(centerIndex);
+		indices.push_back(baseIndex + i + 1);
+		indices.push_back(baseIndex + i);
+	}
+}
+
+void Direct3D::BuildCylinderBottomCap(float bottomRadius, float topRadius, float height,
+	UINT sliceCount, UINT stackCount, std::vector<Vertex::PosTex>& vertexs, std::vector<UINT>& indices)
+{
+	// 
+	// Build bottom cap.
+	//
+
+	UINT baseIndex = (UINT)vertexs.size();
+//	float y = -0.5f*height;
+	float y = 0.0f;//模型中心在原点
+
+	// vertices of ring
+	float dTheta = 2.0f*XM_PI / sliceCount;
+	for (UINT i = 0; i <= sliceCount; ++i)
+	{
+		Vertex::PosTex ver;
+
+		ver.pos.x = bottomRadius*cosf(i*dTheta);
+		ver.pos.y = y;
+		ver.pos.z = bottomRadius*sinf(i*dTheta);
+
+		// Scale down by the height to try and make top cap texture coord area
+		// proportional to base.
+		ver.tex.x = ver.pos.x / height + 0.5f;
+		ver.tex.y = ver.pos.z / height + 0.5f;
+
+		vertexs.push_back(ver);
+	}
+
+	// Cap center vertex.
+	Vertex::PosTex ver;
+	ver.pos.x = 0.0f;
+	ver.pos.y = y;
+	ver.pos.z = 0.0f;
+	ver.tex.x = 0.5f;
+	ver.tex.y = 0.5f;
+	vertexs.push_back(ver);
+
+	// Cache the index of center vertex.
+	UINT centerIndex = (UINT)vertexs.size() - 1;
+
+	for (UINT i = 0; i < sliceCount; ++i)
+	{
+		indices.push_back(centerIndex);
+		indices.push_back(baseIndex + i);
+		indices.push_back(baseIndex + i + 1);
+	}
+}
+
+bool Direct3D::CreateShaderRV(LPCWSTR fileName)
+{
+	if (FAILED(D3DX11CreateShaderResourceViewFromFile(md3dDevice, fileName, 0, 0, &mShaderSView, 0)))
+	{
+		return false;
+	}
+	return true;
 }

@@ -60,13 +60,24 @@ public:
 	float      GetRandomStep(float att=0.0f);  //att 是步长衰减量
 	float      GetRandomAngle();
 };
+struct Trunk
+{
+	XMFLOAT3 pos;
+	float sizeScal;
+	float scalY;
+	XMFLOAT3 rotAxis;
+	float    angle;
+};
+
 class LSystem
 {
 public:
 	LSystem();
 	~LSystem();
 	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
+	std::vector<Trunk> mTrunks;
 private:
 	LSparameter mParamiter;
+	
 };
 

@@ -200,5 +200,8 @@
     <None Include="HLSL\pos_color.hlsl">
       <Filter>HLSL</Filter>
     </None>
+    <None Include="HLSL\pos_tex.hlsl">
+      <Filter>HLSL</Filter>
+    </None>
   </ItemGroup>
 </Project>

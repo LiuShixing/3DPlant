@@ -9,16 +9,17 @@ LSparameter::LSparameter()
 	mStepMax = 5.0f;
 	mRotAngleMin = (XM_PI*5.0f) / 36.0f;
 	mRotAngleMax = XM_PI / 3.0f;
-	mTrunkSize = 1.0f;
+	mTrunkSize = 0.1f;
 
 	//默认规则
 	std::vector<std::string> vs;
 	std::string defaultRule("F[z+x-X][z-x-X][x+X]");
+//	std::string defaultRule("F[z+X][X]");
 	vs.push_back(defaultRule);
-	vs.push_back("F[z+x-X][z-x-X]");
-	vs.push_back("F[z+x-X][x+X]");
-	vs.push_back("F[z-x-X][x+X]");
-	vs.push_back("F[z+x-X]");
+//	vs.push_back("F[z+x-X][z-x-X]");
+//	vs.push_back("F[z+x-X][x+X]");
+//	vs.push_back("F[z-x-X][x+X]");
+//	vs.push_back("F[z+x-X]");
 	mRules['X'] = vs;
 	mStart = 'X';
 
@@ -66,7 +67,9 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 {
 	vertexs.clear();
 	indices.clear();
+	mTrunks.clear();
 
+	//生成最终字符串
 	std::string plantStr = param.GetRandomRule(param.mStart);
 
 	UINT iterations = param.mIterations;
@@ -80,11 +83,13 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 		plantStr = tmpstr;
 	}
 
+	//设置初始状态
 	State orinState;
 	orinState.pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	orinState.v = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	orinState.verIndiex = 0;
 
+	//保存初始顶点
 	Vertex::PosColor orinVer;
 	orinVer.pos = orinState.pos;
 	orinVer.color = reinterpret_cast<const float*>(&Colors::Green);
@@ -94,8 +99,12 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	float stepDelta = 0.5f;
 	float stepAtt = 0.0f;
 
+	//for trunk size
+	float trunkScal = 1.0f;
+	float trunkScalFact = 0.8f;
+
 	State curState = orinState;
-	std::stack<State> stateStack; std::cout << std::endl;
+	std::stack<State> stateStack; 
 	for (int i = 0; i < plantStr.size(); i++)
 	{
 		switch (plantStr[i])
@@ -106,8 +115,9 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					newState.v = curState.v;
 					XMVECTOR OPOS = XMLoadFloat3(&curState.pos);
 					XMVECTOR V = XMVector3Normalize(XMLoadFloat3(&curState.v));
-								
-					XMVECTOR NPOS = OPOS + V*param.GetRandomStep(stepAtt);
+					
+					float step = param.GetRandomStep(stepAtt);
+					XMVECTOR NPOS = OPOS + V*step;
 					XMStoreFloat3(&newState.pos, NPOS);
 
 					Vertex::PosColor newVer;
@@ -118,6 +128,35 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					indices.push_back(curState.verIndiex);
 					indices.push_back(newState.verIndiex);
 
+					//--trunk--每前进一步生成一个树干
+					Trunk trunk;
+					trunk.pos = curState.pos;
+
+					//计算树干的最终旋转轴，旋转角度
+					XMVECTOR Y = XMVector3Normalize(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));//树干起始方向向量
+					XMVECTOR DOT = XMVector3Dot(V, Y);
+					XMFLOAT3 DotTmp;
+					XMStoreFloat3(&DotTmp, DOT);
+					float dot = DotTmp.x;
+					if (fabs(dot - 1.0f) < 0.000001f)
+					{//最终方向和起始方向相同
+						trunk.rotAxis = XMFLOAT3(0.0f, 0.1f, 0.0f);
+						trunk.angle = 0.0f;
+					}
+					else
+					{
+						trunk.angle = acosf(dot);
+						XMVECTOR DIR = XMVector3Normalize(XMVector3Cross(Y, V));
+						XMStoreFloat3(&trunk.rotAxis, DIR);
+					}
+					
+
+					//树干整体缩放和长度缩放
+					trunk.sizeScal = trunkScal;
+					trunk.scalY = step / param.mStepMax;
+					mTrunks.push_back(trunk);
+
+
 					vertexs.push_back(newVer);
 					curState = newState;
 					break;
@@ -127,7 +166,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					float tmpa = param.GetRandomAngle();
 					float angle = plantStr[++i] == '+' ? tmpa : -tmpa;
 
-					XMVECTOR OldV = XMLoadFloat3(&curState.v);
+					XMVECTOR OldV = XMLoadFloat3(&curState.v); 
 					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationX(angle)));
 					XMStoreFloat3(&curState.v, NewV);
 					break;
@@ -153,14 +192,18 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 		case '[':
 			stateStack.push(curState);	
 			stepAtt += stepDelta;
+			trunkScal = trunkScal*trunkScalFact;
 			break;
 		case ']':
 			curState = stateStack.top();
 			stateStack.pop();
 			stepAtt -= stepDelta;
+			trunkScal = trunkScal/trunkScalFact;
 			break;
 		default:	
 			break;
 		}
 	}
+	std::cout <<"indices.size "<< indices.size() << std::endl;
+	std::cout << "mTrunks.size " << mTrunks.size() << std::endl;
 }

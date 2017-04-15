@@ -9,6 +9,12 @@ namespace Vertex
 		XMFLOAT3 pos;
 		XMFLOAT4   color;
 	};
+
+	struct PosTex
+	{
+		XMFLOAT3 pos;
+		XMFLOAT2 tex;
+	};
 };
 
 namespace Colors
