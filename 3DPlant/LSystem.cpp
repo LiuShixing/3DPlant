@@ -68,6 +68,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	vertexs.clear();
 	indices.clear();
 	mTrunks.clear();
+	mLeaves.clear();
 
 	//生成最终字符串
 	std::string plantStr = param.GetRandomRule(param.mStart);
@@ -102,6 +103,9 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	//for trunk size
 	float trunkScal = 1.0f;
 	float trunkScalFact = 0.8f;
+
+	//记录深度
+	int depth = 1;
 
 	State curState = orinState;
 	std::stack<State> stateStack; 
@@ -156,6 +160,36 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					trunk.scalY = step / param.mStepMax;
 					mTrunks.push_back(trunk);
 
+					//生成叶子
+					if (depth > param.mIterations - 1)
+					{
+						param.mLeaveSize = 1.0f;
+						Leave leave1;
+						leave1.pos.x = (curState.pos.x + newState.pos.x) / 2.0f;
+						leave1.pos.y = (curState.pos.y + newState.pos.y) / 2.0f;
+						leave1.pos.z = (curState.pos.z + newState.pos.z) / 2.0f;
+						leave1.rotAxis = trunk.rotAxis;
+						leave1.angle = trunk.angle;
+						leave1.scal = param.mLeaveSize;
+
+						//两对叶子
+						mLeaves.push_back(leave1);
+						mLeaves.push_back(leave1);
+						mLeaves.push_back(leave1);
+						mLeaves.push_back(leave1);
+
+						Leave leave2;
+						leave2.pos = newState.pos;
+						leave2.rotAxis = trunk.rotAxis;
+						leave2.angle = trunk.angle;
+						leave2.scal = param.mLeaveSize;
+
+						//两对叶子
+						mLeaves.push_back(leave2);
+						mLeaves.push_back(leave2);
+						mLeaves.push_back(leave2);
+						mLeaves.push_back(leave2);
+					}
 
 					vertexs.push_back(newVer);
 					curState = newState;
@@ -193,12 +227,14 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 			stateStack.push(curState);	
 			stepAtt += stepDelta;
 			trunkScal = trunkScal*trunkScalFact;
+			depth++;
 			break;
 		case ']':
 			curState = stateStack.top();
 			stateStack.pop();
 			stepAtt -= stepDelta;
 			trunkScal = trunkScal/trunkScalFact;
+			depth--;
 			break;
 		default:	
 			break;

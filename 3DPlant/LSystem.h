@@ -53,6 +53,7 @@ public:
 	float mRotAngleMin;
 	float mRotAngleMax;
 	float mTrunkSize;
+	float mLeaveSize;
 	char  mStart;
 	std::map<char, std::vector<std::string> > mRules;
 
@@ -68,6 +69,13 @@ struct Trunk
 	XMFLOAT3 rotAxis;
 	float    angle;
 };
+struct Leave
+{
+	XMFLOAT3 pos;
+	float scal;
+	XMFLOAT3 rotAxis;
+	float    angle;
+};
 
 class LSystem
 {
@@ -76,6 +84,7 @@ public:
 	~LSystem();
 	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
 	std::vector<Trunk> mTrunks;
+	std::vector<Leave> mLeaves;
 private:
 	LSparameter mParamiter;
 	

@@ -145,6 +145,15 @@ bool Direct3D::Init(HWND mainWnd, int clientWidth, int clientHeight, const std::
 
 	InitLayout();
 
+	//ÎÞ±³ÃæÏûÒþäÖÈ¾×´Ì¬
+	D3D11_RASTERIZER_DESC    NoBackDesc;
+	ZeroMemory(&NoBackDesc, sizeof(D3D11_RASTERIZER_DESC));
+	NoBackDesc.CullMode = D3D11_CULL_NONE;
+	NoBackDesc.FillMode = D3D11_FILL_SOLID;
+	NoBackDesc.DepthClipEnable = true;
+	if (FAILED(md3dDevice->CreateRasterizerState(&NoBackDesc, &mNoBackRS)))
+		return 0;
+
 	return true;
 }
 
@@ -225,7 +234,7 @@ void Direct3D::OnResize(int clientWidth, int clientHeight)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*XM_PI, aspectRatio, 1.0f, 1000.0f);
 	XMStoreFloat4x4(&mProj, P);
 }
-void Direct3D::Draw(std::vector<Trunk>& trunks)
+void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves)
 {
 	//--------------------------------update--------------------------
 	float x = mRadius*sinf(mPhi)*cosf(mTheta);
@@ -301,6 +310,36 @@ void Direct3D::Draw(std::vector<Trunk>& trunks)
 			this->md3dImmediateContext->DrawIndexed(mTrunkIndexCount, 0, 0);
 		}
 	}
+
+	//draw leaves
+	mDiffuseMap->SetResource(mLeaveShaderSView);
+	md3dImmediateContext->IASetInputLayout(mPosTexLayout);
+	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	md3dImmediateContext->RSSetState(mNoBackRS);
+
+	stride = sizeof(Vertex::PosTex);
+	offset = 0;
+	this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLeaveVB, &stride, &offset);
+	this->md3dImmediateContext->IASetIndexBuffer(mpLeaveIB, DXGI_FORMAT_R32_UINT, 0);
+	float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI, XM_PI*1.5f };
+	for (int i = 0; i < leaves.size(); i++)
+	{
+		XMMATRIX RotYM = XMMatrixRotationY(rotY[i%4]);
+		XMMATRIX sizeScal = XMMatrixScaling(leaves[i].scal, leaves[i].scal, leaves[i].scal);
+		world = XMMatrixTranslation(leaves[i].pos.x, leaves[i].pos.y, leaves[i].pos.z);
+		XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&leaves[i].rotAxis), leaves[i].angle);
+		worldViewProj = sizeScal*RotYM*rot*world*View*Proj;
+		mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+
+		techDesc;
+		mPosTexTech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			mPosTexTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
+			this->md3dImmediateContext->DrawIndexed(6, 0, 0);
+		}
+	}
+
 	//-----------------------------------
 	this->mSwapChain->Present(0, 0);
 }
@@ -466,6 +505,49 @@ bool Direct3D::CreateTrunkVIBuffer(std::vector<Vertex::PosTex>& vertexs, std::ve
 	D3D11_SUBRESOURCE_DATA ibdata = { 0 };
 	ibdata.pSysMem = &indices[0];
 	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpTrunkIB)))
+		return 0;
+
+	return 1;
+}
+bool Direct3D::CreateLeaveVIBuffer()
+{
+	std::vector<Vertex::PosTex> vertexs(4);
+	vertexs[0].pos = XMFLOAT3(-1.0f,0.0f,0.0f);
+	vertexs[0].tex = XMFLOAT2(0.0f,1.0f);
+	vertexs[1].pos = XMFLOAT3(-1.0f, 1.0f, 0.0f);
+	vertexs[1].tex = XMFLOAT2(0.0f, 0.0f);
+	vertexs[2].pos = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	vertexs[2].tex = XMFLOAT2(1.0f, 0.0f);
+	vertexs[3].pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	vertexs[3].tex = XMFLOAT2(1.0f, 1.0f);
+
+	D3D11_BUFFER_DESC vDesc = { 0 };
+	vDesc.ByteWidth = vertexs.size() * sizeof(Vertex::PosTex);
+	vDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	vDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+
+	D3D11_SUBRESOURCE_DATA vbdata = { 0 };
+	vbdata.pSysMem = &vertexs[0];
+
+	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpLeaveVB)))
+		return 0;
+
+	//index
+	UINT indices[6] = {
+		0,1,2,
+		2,3,0
+	};
+	
+	mIndexCount = 6;
+	D3D11_BUFFER_DESC iDesc = { 0 };
+	iDesc.ByteWidth = mIndexCount * sizeof(UINT);
+	iDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	iDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA ibdata = { 0 };
+	ibdata.pSysMem = indices;
+	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpLeaveIB)))
 		return 0;
 
 	return 1;
@@ -640,9 +722,13 @@ void Direct3D::BuildCylinderBottomCap(float bottomRadius, float topRadius, float
 	}
 }
 
-bool Direct3D::CreateShaderRV(LPCWSTR fileName)
+bool Direct3D::CreateShaderRV(LPCWSTR fileName, LPCWSTR leave_fileName)
 {
 	if (FAILED(D3DX11CreateShaderResourceViewFromFile(md3dDevice, fileName, 0, 0, &mShaderSView, 0)))
+	{
+		return false;
+	}
+	if (FAILED(D3DX11CreateShaderResourceViewFromFile(md3dDevice, leave_fileName, 0, 0, &mLeaveShaderSView, 0)))
 	{
 		return false;
 	}
