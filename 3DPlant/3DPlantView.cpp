@@ -88,12 +88,12 @@ void UpdatePlant()
 	std::vector<Vertex::PosTex> vertexs2;
 	std::vector<UINT> indices2;
 	float buttomR = gSettingDia.mLSparamiter.mTrunkSize;
-	float topR = gSettingDia.mLSparamiter.mTrunkSize * 0.8f;
+	float topR = gSettingDia.mLSparamiter.mTrunkSize * gSettingDia.mLSparamiter.mRadiusRate;
 	float height = gSettingDia.mLSparamiter.mStepMax;
 	gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2);
 	gD3d.CreateTrunkVIBuffer(vertexs2, indices2);
 	gD3d.CreateShaderRV(L"res/trunk.dds",L"res/leave.png");
-	gD3d.Draw(gLS.mTrunks,gLS.mLeaves);
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
 }
 
 // CMy3DPlantView 绘制
@@ -132,7 +132,7 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 		std::vector<Vertex::PosTex> vertexs2;
 		std::vector<UINT> indices2;
 		float buttomR = gSettingDia.mLSparamiter.mTrunkSize;
-		float topR = gSettingDia.mLSparamiter.mTrunkSize * 0.8f;
+		float topR = gSettingDia.mLSparamiter.mTrunkSize * gSettingDia.mLSparamiter.mRadiusRate;
 		float height = gSettingDia.mLSparamiter.mStepMax; 
 		gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2); 
 		gD3d.CreateTrunkVIBuffer(vertexs2, indices2); 
@@ -140,7 +140,7 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 		gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.png");
 	}
 	//绘制
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves);
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
 }
 
 
@@ -263,7 +263,7 @@ void CMy3DPlantView::OnMouseMove(UINT nFlags, CPoint point)
 	gD3d.mLastMousePos.x = point.x;
 	gD3d.mLastMousePos.y = point.y;
 
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves);
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
 
 	CView::OnMouseMove(nFlags, point);
 }
@@ -294,7 +294,7 @@ BOOL CMy3DPlantView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
 	
 	gD3d.mRadius += zDelta*0.005f;
-	gD3d.Draw(gLS.mTrunks,gLS.mLeaves);
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
 

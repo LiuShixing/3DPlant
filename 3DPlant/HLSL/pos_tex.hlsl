@@ -35,8 +35,7 @@ VertexOut VS(VertexIn vin)
 }
 float4 PS(VertexOut pin) :SV_Target
 {
-   float4 texColor=float4(1.0f,1.0f,1.0f,1.0f);
-
+   float4 texColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
    texColor = gDiffuseMap.Sample( samAnisotropic, pin.Tex );
    clip(texColor.a - 0.1f);
    return texColor;

@@ -2,24 +2,25 @@
 #include "LSystem.h"
 
 
-LSparameter::LSparameter()
+LSparameter::LSparameter() :mIsTrunk(1)
+, mIsLeave(1)
 {
-	mIterations = 3;
+	mIterations = 5;
 	mStepMin = 1.0f;
 	mStepMax = 5.0f;
 	mRotAngleMin = (XM_PI*5.0f) / 36.0f;
-	mRotAngleMax = XM_PI / 3.0f;
-	mTrunkSize = 0.1f;
-
+	mRotAngleMax = XM_PI / 6.0f;
+	mTrunkSize = 0.3f;
+	mRadiusRate = 0.6f;
 	//默认规则
 	std::vector<std::string> vs;
 	std::string defaultRule("F[z+x-X][z-x-X][x+X]");
-//	std::string defaultRule("F[z+X][X]");
+
 	vs.push_back(defaultRule);
-//	vs.push_back("F[z+x-X][z-x-X]");
-//	vs.push_back("F[z+x-X][x+X]");
-//	vs.push_back("F[z-x-X][x+X]");
-//	vs.push_back("F[z+x-X]");
+	vs.push_back("F[z+x-X][z-x-X]");
+	vs.push_back("F[z+x-X][x+X]");
+	vs.push_back("F[z-x-X][x+X]");
+	vs.push_back("F[z+x-X]");
 	mRules['X'] = vs;
 	mStart = 'X';
 
@@ -102,7 +103,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 
 	//for trunk size
 	float trunkScal = 1.0f;
-	float trunkScalFact = 0.8f;
+	float trunkScalFact = param.mRadiusRate;
 
 	//记录深度
 	int depth = 1;

@@ -176,57 +176,6 @@ END
 
 IDR_MAINFRAME MENU
 BEGIN
-    POPUP "文件(&F)"
-    BEGIN
-        MENUITEM "新建(&N)\tCtrl+N",              ID_FILE_NEW
-        MENUITEM "打开(&O)...\tCtrl+O",           ID_FILE_OPEN
-        MENUITEM "保存(&S)\tCtrl+S",              ID_FILE_SAVE
-        MENUITEM "另存为(&A)...",                  ID_FILE_SAVE_AS
-        MENUITEM SEPARATOR
-        MENUITEM "打印(&P)...\tCtrl+P",           ID_FILE_PRINT
-        MENUITEM "打印预览(&V)",                    ID_FILE_PRINT_PREVIEW
-        MENUITEM "打印设置(&R)...",                 ID_FILE_PRINT_SETUP
-        MENUITEM SEPARATOR
-        MENUITEM "最近的文件",                       ID_FILE_MRU_FILE1, GRAYED
-        MENUITEM SEPARATOR
-        MENUITEM "退出(&X)",                      ID_APP_EXIT
-    END
-    POPUP "编辑(&E)"
-    BEGIN
-        MENUITEM "撤消(&U)\tCtrl+Z",              ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "剪切(&T)\tCtrl+X",              ID_EDIT_CUT
-        MENUITEM "复制(&C)\tCtrl+C",              ID_EDIT_COPY
-        MENUITEM "粘贴(&P)\tCtrl+V",              ID_EDIT_PASTE
-    END
-    POPUP "视图(&V)"
-    BEGIN
-        POPUP "工具栏和停靠窗口(&T)"
-        BEGIN
-            MENUITEM "<占位符>",                       ID_VIEW_TOOLBAR
-        END
-        MENUITEM "状态栏(&S)",                     ID_VIEW_STATUS_BAR
-        POPUP "应用程序外观(&A)"
-        BEGIN
-            MENUITEM "Windows 2000(&2)",            ID_VIEW_APPLOOK_WIN_2000
-            MENUITEM "Office XP(&X)",               ID_VIEW_APPLOOK_OFF_XP
-            MENUITEM "Windows XP(&W)",              ID_VIEW_APPLOOK_WIN_XP
-            MENUITEM "Office 2003(&3)",             ID_VIEW_APPLOOK_OFF_2003
-            MENUITEM "Visual Studio 200&5",         ID_VIEW_APPLOOK_VS_2005
-            MENUITEM "Visual Studio 200&8",         ID_VIEW_APPLOOK_VS_2008
-            POPUP "Office 2007(&7)"
-            BEGIN
-                MENUITEM "蓝色样式(&B)",                    ID_VIEW_APPLOOK_OFF_2007_BLUE
-                MENUITEM "黑色样式(&L)",                    ID_VIEW_APPLOOK_OFF_2007_BLACK
-                MENUITEM "银色样式(&S)",                    ID_VIEW_APPLOOK_OFF_2007_SILVER
-                MENUITEM "水绿色样式(&A)",                   ID_VIEW_APPLOOK_OFF_2007_AQUA
-            END
-        END
-    END
-    POPUP "帮助(&H)"
-    BEGIN
-        MENUITEM "关于 3DPlant(&A)...",           ID_APP_ABOUT
-    END
     MENUITEM "设置",                          ID_SETTING
 END
 
@@ -334,12 +283,12 @@ BEGIN
     DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
 END
 
-IDD_SETTINGDIALOG DIALOGEX 0, 0, 223, 299
+IDD_SETTINGDIALOG DIALOGEX 0, 0, 223, 327
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
 CAPTION "设置"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "确定",IDC_OK,85,264,50,14
+    PUSHBUTTON      "确定",IDC_OK,77,306,50,14
     LTEXT           "迭代次数",IDC_STATIC,14,19,33,8
     EDITTEXT        IDC_ITERATIONS,48,17,21,14,ES_AUTOHSCROLL
     LTEXT           "规则1",IDC_STATIC,15,138,19,8
@@ -364,6 +313,12 @@ BEGIN
     EDITTEXT        IDC_EDIT10,50,75,38,14,ES_AUTOHSCROLL
     LTEXT           "起始符",IDC_STATIC,14,115,22,8
     EDITTEXT        IDC_EDIT11,53,114,22,14,ES_AUTOHSCROLL
+    LTEXT           "半径比",IDC_STATIC,98,78,22,8
+    EDITTEXT        IDC_EDIT12,122,74,40,14,ES_AUTOHSCROLL
+    CONTROL         "树叶",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,55,95,30,10
+    CONTROL         "树干",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,95,30,10
+    PUSHBUTTON      "打开",IDC_OPEN,17,269,50,14
+    PUSHBUTTON      "保存",IDC_SAVE,87,269,50,14
 END
 
 
@@ -427,7 +382,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 215
         TOPMARGIN, 7
-        BOTTOMMARGIN, 292
+        BOTTOMMARGIN, 320
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -450,7 +405,7 @@ END
 
 STRINGTABLE
 BEGIN
-    AFX_IDS_APP_TITLE       "3DPlant"
+    AFX_IDS_APP_TITLE       "三维植物模拟平台"
     AFX_IDS_IDLEMESSAGE     "就绪"
 END
 

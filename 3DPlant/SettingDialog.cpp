@@ -5,6 +5,7 @@
 #include "3DPlant.h"
 #include "SettingDialog.h"
 #include "afxdialogex.h"
+#include<fstream>
 
 // SettingDialog 对话框
 
@@ -25,7 +26,7 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 
-	std::vector<std::string> rules(6,"");
+	std::vector<std::string> rules(6, "");
 	int index = 0;
 	for (std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
 	{
@@ -56,6 +57,10 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_EDIT10, mTrunkSizeEdit);
 	DDX_Text(pDX, IDC_EDIT10, mLSparamiter.mTrunkSize);
+
+	DDX_Control(pDX, IDC_EDIT12, mRadiusRateEdit);
+	DDX_Text(pDX, IDC_EDIT12, mLSparamiter.mRadiusRate);
+
 
 	CString Start(mLSparamiter.mStart);
 	DDX_Control(pDX, IDC_EDIT11, mStartEdit);
@@ -93,11 +98,18 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	CString cs5(ws.c_str());
 	DDX_Text(pDX, IDC_EDIT6, cs5);
 
+	
+	DDX_Control(pDX, IDC_CHECK1, mIsTrunkCheck);
+	DDX_Control(pDX, IDC_CHECK2, mIsLeaveCheck);
+	mIsTrunkCheck.SetCheck(mLSparamiter.mIsTrunk);
+	mIsLeaveCheck.SetCheck(mLSparamiter.mIsLeave);
 }
 
 
 BEGIN_MESSAGE_MAP(SettingDialog, CDialog)
 	ON_BN_CLICKED(IDC_OK, &SettingDialog::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_OPEN, &SettingDialog::OnBnClickedOpen)
+	ON_BN_CLICKED(IDC_SAVE, &SettingDialog::OnBnClickedSave)
 END_MESSAGE_MAP()
 
 
@@ -149,7 +161,12 @@ void SettingDialog::OnBnClickedOk()
 	mLSparamiter.mRotAngleMax = _ttof(text);
 	mTrunkSizeEdit.GetWindowText(text);
 	mLSparamiter.mTrunkSize = _ttof(text);
+	mRadiusRateEdit.GetWindowText(text);
+	mLSparamiter.mRadiusRate = _ttof(text);
 
+	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
+	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
+	std::cout << "fdfdf = " << mLSparamiter.mIsTrunk << std::endl;
 	mStartEdit.GetWindowText(text);
 	mLSparamiter.mStart = text[0];
 
@@ -175,3 +192,61 @@ void SettingDialog::OnBnClickedOk()
 		MessageBox(0, L" 不符合文法规则！", 0);
 	}
 }
+
+
+void SettingDialog::OnBnClickedOpen()
+{
+	CString  strPathName;
+	GetModuleFileName(NULL, strPathName.GetBuffer(256), 256);
+	strPathName.ReleaseBuffer(256);
+	int nPos = strPathName.ReverseFind('\\');
+	strPathName = strPathName.Left(nPos + 1);
+
+	BOOL isOpen = TRUE;     //是否打开(否则为保存)  
+	CString defaultDir = strPathName;   //默认打开的文件路径  
+	CString fileName = L"";         //默认打开的文件名  
+	CString filter = L"文件 (*.plant)|*.plant||";   //文件过虑的类型  
+	CFileDialog openFileDlg(isOpen, defaultDir, fileName, OFN_HIDEREADONLY | OFN_READONLY, filter, NULL);
+	openFileDlg.GetOFN().lpstrInitialDir = L"E:\\FileTest\\test.doc";
+	INT_PTR result = openFileDlg.DoModal();
+	CString filePath = defaultDir + "\\test.doc";
+    if (result == IDOK) {
+		filePath = openFileDlg.GetPathName();
+
+		std::ifstream is(filePath, std::ios::binary);
+		is.read((char *)&mLSparamiter, sizeof(mLSparamiter));
+		is.close();
+		UpdateData(FALSE);
+	}
+}
+
+
+void SettingDialog::OnBnClickedSave()
+{
+	CString  strPathName;
+	GetModuleFileName(NULL, strPathName.GetBuffer(256), 256);
+	strPathName.ReleaseBuffer(256);
+	int nPos = strPathName.ReverseFind('\\');
+	strPathName = strPathName.Left(nPos + 1);
+
+	BOOL isOpen = FALSE;        //是否打开(否则为保存)  
+	CString defaultDir = strPathName;   //默认打开的文件路径  
+	CString fileName = L"file.plant";         //默认打开的文件名  
+	CString filter = L"文件 (*.plant)|*.plant||";   //文件过虑的类型  
+	CFileDialog openFileDlg(isOpen, defaultDir, fileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, NULL);
+	openFileDlg.GetOFN().lpstrInitialDir = L"E:\\FileTest\\test.doc";
+	INT_PTR result = openFileDlg.DoModal();
+	CString filePath = defaultDir + "\\" + fileName;
+	if (result == IDOK) {
+		filePath = openFileDlg.GetPathName();
+
+		std::ofstream os(filePath,std::ios::binary);
+		os.write((char *)&mLSparamiter, sizeof(mLSparamiter));
+		os.close();
+	}
+}
+/*
+
+
+
+*/

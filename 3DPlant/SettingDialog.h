@@ -44,4 +44,10 @@ public:
 
 	LSparameter mLSparamiter;
 	CEdit mStartEdit;
+	CEdit mRadiusRateEdit;
+	CButton mIsTrunkCheck;
+	CButton mIsLeaveCheck;
+	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedOpen();
+	afx_msg void OnBnClickedSave();
 };

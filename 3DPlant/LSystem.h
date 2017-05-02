@@ -53,8 +53,11 @@ public:
 	float mRotAngleMin;
 	float mRotAngleMax;
 	float mTrunkSize;
+	float mRadiusRate;
 	float mLeaveSize;
 	char  mStart;
+	int mIsTrunk;
+	int mIsLeave;
 	std::map<char, std::vector<std::string> > mRules;
 
 	std::string GetRandomRule(char key);
@@ -85,8 +88,5 @@ public:
 	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
 	std::vector<Trunk> mTrunks;
 	std::vector<Leave> mLeaves;
-private:
-	LSparameter mParamiter;
-	
 };
 

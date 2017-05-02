@@ -234,7 +234,7 @@ void Direct3D::OnResize(int clientWidth, int clientHeight)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*XM_PI, aspectRatio, 1.0f, 1000.0f);
 	XMStoreFloat4x4(&mProj, P);
 }
-void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves)
+void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int isDrawTrunk,int isDrawLeave)
 {
 	//--------------------------------update--------------------------
 	float x = mRadius*sinf(mPhi)*cosf(mTheta);
@@ -267,79 +267,87 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves)
 	this->md3dImmediateContext->ClearRenderTargetView(this->mRenderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	this->md3dImmediateContext->ClearDepthStencilView(this->mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	md3dImmediateContext->IASetInputLayout(mPosColorLayout);
-	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	
-	UINT stride = sizeof(Vertex::PosColor);
-	UINT offset = 0;
-	this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpVB, &stride, &offset);
-	this->md3dImmediateContext->IASetIndexBuffer(mpIB, DXGI_FORMAT_R32_UINT, 0);
-	
+	UINT stride;
+	UINT offset;
 	D3DX11_TECHNIQUE_DESC techDesc;
-	mTech->GetDesc(&techDesc);
-	for (UINT p = 0; p<techDesc.Passes; ++p)
+	if (isDrawTrunk == 0 )
 	{
-		mTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
-		this->md3dImmediateContext->DrawIndexed(mIndexCount, 0, 0);
-	}
+		md3dImmediateContext->IASetInputLayout(mPosColorLayout);
+		md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
+		stride = sizeof(Vertex::PosColor);
+		offset = 0;
+		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpVB, &stride, &offset);
+		this->md3dImmediateContext->IASetIndexBuffer(mpIB, DXGI_FORMAT_R32_UINT, 0);
+
+		mTech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			mTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
+			this->md3dImmediateContext->DrawIndexed(mIndexCount, 0, 0);
+		}
+	}
 	// draw trunk---------------------------------------------------------------------------------------
 
-	//update trunk
-	mDiffuseMap->SetResource(mShaderSView);
-	md3dImmediateContext->IASetInputLayout(mPosTexLayout);
-	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	stride = sizeof(Vertex::PosTex);
-	offset = 0;
-	this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpTrunkVB, &stride, &offset);
-	this->md3dImmediateContext->IASetIndexBuffer(mpTrunkIB, DXGI_FORMAT_R32_UINT, 0);
-	for (int i = 0; i < trunks.size(); i++)
+	if (isDrawTrunk==1)
 	{
-		XMMATRIX sizeScal = XMMatrixScaling(trunks[i].sizeScal, trunks[i].scalY, trunks[i].sizeScal);
-		world = XMMatrixTranslation(trunks[i].pos.x, trunks[i].pos.y, trunks[i].pos.z);
-		XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&trunks[i].rotAxis), trunks[i].angle);
-		worldViewProj = sizeScal*rot*world*View*Proj;
-		mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+		//update trunk
+		mDiffuseMap->SetResource(mShaderSView);
+		md3dImmediateContext->IASetInputLayout(mPosTexLayout);
+		md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		techDesc;
-		mPosTexTech->GetDesc(&techDesc);
-		for (UINT p = 0; p < techDesc.Passes; ++p)
+		stride = sizeof(Vertex::PosTex);
+		offset = 0;
+		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpTrunkVB, &stride, &offset);
+		this->md3dImmediateContext->IASetIndexBuffer(mpTrunkIB, DXGI_FORMAT_R32_UINT, 0);
+		for (int i = 0; i < trunks.size(); i++)
 		{
-			mPosTexTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
-			this->md3dImmediateContext->DrawIndexed(mTrunkIndexCount, 0, 0);
+			XMMATRIX sizeScal = XMMatrixScaling(trunks[i].sizeScal, trunks[i].scalY, trunks[i].sizeScal);
+			world = XMMatrixTranslation(trunks[i].pos.x, trunks[i].pos.y, trunks[i].pos.z);
+			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&trunks[i].rotAxis), trunks[i].angle);
+			worldViewProj = sizeScal*rot*world*View*Proj;
+			mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+
+			techDesc;
+			mPosTexTech->GetDesc(&techDesc);
+			for (UINT p = 0; p < techDesc.Passes; ++p)
+			{
+				mPosTexTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
+				this->md3dImmediateContext->DrawIndexed(mTrunkIndexCount, 0, 0);
+			}
 		}
 	}
-
 	//draw leaves
-	mDiffuseMap->SetResource(mLeaveShaderSView);
-	md3dImmediateContext->IASetInputLayout(mPosTexLayout);
-	md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	md3dImmediateContext->RSSetState(mNoBackRS);
-
-	stride = sizeof(Vertex::PosTex);
-	offset = 0;
-	this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLeaveVB, &stride, &offset);
-	this->md3dImmediateContext->IASetIndexBuffer(mpLeaveIB, DXGI_FORMAT_R32_UINT, 0);
-	float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI, XM_PI*1.5f };
-	for (int i = 0; i < leaves.size(); i++)
+	if (isDrawLeave==1)
 	{
-		XMMATRIX RotYM = XMMatrixRotationY(rotY[i%4]);
-		XMMATRIX sizeScal = XMMatrixScaling(leaves[i].scal, leaves[i].scal, leaves[i].scal);
-		world = XMMatrixTranslation(leaves[i].pos.x, leaves[i].pos.y, leaves[i].pos.z);
-		XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&leaves[i].rotAxis), leaves[i].angle);
-		worldViewProj = sizeScal*RotYM*rot*world*View*Proj;
-		mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+		mDiffuseMap->SetResource(mLeaveShaderSView);
+		md3dImmediateContext->IASetInputLayout(mPosTexLayout);
+		md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		md3dImmediateContext->RSSetState(mNoBackRS);
 
-		techDesc;
-		mPosTexTech->GetDesc(&techDesc);
-		for (UINT p = 0; p < techDesc.Passes; ++p)
+		stride = sizeof(Vertex::PosTex);
+		offset = 0;
+		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLeaveVB, &stride, &offset);
+		this->md3dImmediateContext->IASetIndexBuffer(mpLeaveIB, DXGI_FORMAT_R32_UINT, 0);
+		float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI, XM_PI*1.5f };
+		for (int i = 0; i < leaves.size(); i++)
 		{
-			mPosTexTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
-			this->md3dImmediateContext->DrawIndexed(6, 0, 0);
+			XMMATRIX RotYM = XMMatrixRotationY(rotY[i % 4]);
+			XMMATRIX sizeScal = XMMatrixScaling(leaves[i].scal, leaves[i].scal, leaves[i].scal);
+			world = XMMatrixTranslation(leaves[i].pos.x, leaves[i].pos.y, leaves[i].pos.z);
+			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&leaves[i].rotAxis), leaves[i].angle);
+			worldViewProj = sizeScal*RotYM*rot*world*View*Proj;
+			mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+
+			techDesc;
+			mPosTexTech->GetDesc(&techDesc);
+			for (UINT p = 0; p < techDesc.Passes; ++p)
+			{
+				mPosTexTech->GetPassByIndex(p)->Apply(0, this->md3dImmediateContext);
+				this->md3dImmediateContext->DrawIndexed(6, 0, 0);
+			}
 		}
 	}
-
 	//-----------------------------------
 	this->mSwapChain->Present(0, 0);
 }

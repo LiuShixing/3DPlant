@@ -44,7 +44,7 @@ public:
 
 	bool Init(HWND mainWnd, int clientWidth, int clientHeight, const std::wstring& filename);
 	void OnResize(int clientWidth, int clientHeight);
-	void Draw(std::vector<Trunk>& trunks,std::vector<Leave>& leaves);
+	void Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves, int isDrawTrunk, int isDrawLeave);
 	bool BuildHLSL(const std::wstring& filename);
 	bool InitLayout();
 	bool CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices);
