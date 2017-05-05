@@ -504,9 +504,9 @@ bool Direct3D::CreateTrunkVIBuffer(std::vector<Vertex::PosTex>& vertexs, std::ve
 		return 0;
 
 	//index
-	mIndexCount = indices.size();
+	mTrunkIndexCount = indices.size();
 	D3D11_BUFFER_DESC iDesc = { 0 };
-	iDesc.ByteWidth = mIndexCount * sizeof(UINT);
+	iDesc.ByteWidth = mTrunkIndexCount * sizeof(UINT);
 	iDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	iDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
@@ -547,9 +547,8 @@ bool Direct3D::CreateLeaveVIBuffer()
 		2,3,0
 	};
 	
-	mIndexCount = 6;
 	D3D11_BUFFER_DESC iDesc = { 0 };
-	iDesc.ByteWidth = mIndexCount * sizeof(UINT);
+	iDesc.ByteWidth = 6 * sizeof(UINT);
 	iDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	iDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 

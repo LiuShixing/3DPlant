@@ -102,8 +102,9 @@
 #define IDC_CHECK1                      1018
 #define IDC_CHECK2                      1019
 #define IDC_OPEN                        1021
-#define IDC_BUTTON2                     1022
 #define IDC_SAVE                        1022
+#define IDC_EDIT13                      1023
+#define IDC_EDIT14                      1024
 #define ID_32771                        32771
 #define ID_SETTING                      32772
 
@@ -113,7 +114,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        310
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           311
 #endif
 #endif

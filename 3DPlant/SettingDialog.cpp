@@ -49,6 +49,9 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT7, mStepMaxEdit);
 	DDX_Text(pDX, IDC_EDIT7, mLSparamiter.mStepMax);
 
+	DDX_Control(pDX, IDC_EDIT13, mStepAttEdit);
+	DDX_Text(pDX, IDC_EDIT13, mLSparamiter.mStepAtt);
+
 	DDX_Control(pDX, IDC_EDIT8, mRotAngleMinEdit);
 	DDX_Text(pDX, IDC_EDIT8, mLSparamiter.mRotAngleMin);
 
@@ -57,6 +60,9 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_EDIT10, mTrunkSizeEdit);
 	DDX_Text(pDX, IDC_EDIT10, mLSparamiter.mTrunkSize);
+
+	DDX_Control(pDX, IDC_EDIT14, mTrunkSizeAttEdit);
+	DDX_Text(pDX, IDC_EDIT14, mLSparamiter.mTrunkSizeAtt);
 
 	DDX_Control(pDX, IDC_EDIT12, mRadiusRateEdit);
 	DDX_Text(pDX, IDC_EDIT12, mLSparamiter.mRadiusRate);
@@ -98,11 +104,13 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	CString cs5(ws.c_str());
 	DDX_Text(pDX, IDC_EDIT6, cs5);
 
-	
+
 	DDX_Control(pDX, IDC_CHECK1, mIsTrunkCheck);
 	DDX_Control(pDX, IDC_CHECK2, mIsLeaveCheck);
 	mIsTrunkCheck.SetCheck(mLSparamiter.mIsTrunk);
 	mIsLeaveCheck.SetCheck(mLSparamiter.mIsLeave);
+
+	
 }
 
 
@@ -155,12 +163,16 @@ void SettingDialog::OnBnClickedOk()
 	mLSparamiter.mStepMin = _ttof(text);
 	mStepMaxEdit.GetWindowText(text);
 	mLSparamiter.mStepMax = _ttof(text);
+	mStepAttEdit.GetWindowText(text);
+	mLSparamiter.mStepAtt = _ttof(text);
 	mRotAngleMinEdit.GetWindowText(text);
 	mLSparamiter.mRotAngleMin = _ttof(text);
 	mRotAngleMaxEdit.GetWindowText(text);
 	mLSparamiter.mRotAngleMax = _ttof(text);
 	mTrunkSizeEdit.GetWindowText(text);
 	mLSparamiter.mTrunkSize = _ttof(text);
+	mTrunkSizeAttEdit.GetWindowText(text);
+	mLSparamiter.mTrunkSizeAtt = _ttof(text);
 	mRadiusRateEdit.GetWindowText(text);
 	mLSparamiter.mRadiusRate = _ttof(text);
 

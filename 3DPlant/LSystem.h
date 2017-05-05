@@ -40,6 +40,7 @@ struct State
 	XMFLOAT3 pos;
 	XMFLOAT3 v;
 	UINT     verIndiex;
+	float    trunkScal;
 };
 
 class LSparameter
@@ -50,9 +51,11 @@ public:
 	UINT  mIterations;  
 	float mStepMin;
 	float mStepMax;
+	float mStepAtt;
 	float mRotAngleMin;
 	float mRotAngleMax;
 	float mTrunkSize;
+	float mTrunkSizeAtt;
 	float mRadiusRate;
 	float mLeaveSize;
 	char  mStart;

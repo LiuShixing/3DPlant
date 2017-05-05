@@ -8,13 +8,16 @@ LSparameter::LSparameter() :mIsTrunk(1)
 	mIterations = 5;
 	mStepMin = 1.0f;
 	mStepMax = 5.0f;
-	mRotAngleMin = (XM_PI*5.0f) / 36.0f;
-	mRotAngleMax = XM_PI / 6.0f;
+	mStepAtt = 0.8f;
+	mRotAngleMin = 15.0f;
+	mRotAngleMax = 30.0f;
 	mTrunkSize = 0.3f;
+	mTrunkSizeAtt = 1.0f;
 	mRadiusRate = 0.6f;
 	//默认规则
 	std::vector<std::string> vs;
 	std::string defaultRule("F[z+x-X][z-x-X][x+X]");
+//	std::string defaultRule("Fz-[[X]z+X]z+F[z+FX]z-X");
 
 	vs.push_back(defaultRule);
 	vs.push_back("F[z+x-X][z-x-X]");
@@ -23,6 +26,10 @@ LSparameter::LSparameter() :mIsTrunk(1)
 	vs.push_back("F[z+x-X]");
 	mRules['X'] = vs;
 	mStart = 'X';
+
+//	std::vector<std::string> tmp;
+//	tmp.push_back("FF");
+//	mRules['F'] = tmp;
 
 	srand(time(NULL));
 }
@@ -44,15 +51,16 @@ std::string LSparameter::GetRandomRule(char key)
 float LSparameter::GetRandomStep(float att)
 {
 	float x = (float)rand() / (float)(RAND_MAX + 1);
-	float tmin = mStepMin - att > 0.0f ? mStepMin - att : mStepMin;
-	float tmax = mStepMax - att > 0.0f ? mStepMax - att : mStepMin;
-	return tmin + (tmax - tmin) * x;
+//	float tmin = mStepMin - att > 0.0f ? mStepMin - att : 0.5f;
+//	float tmax = mStepMax - att > 0.0f ? mStepMax - att : 0.5f;
+//	return tmin + (tmax - tmin) * x;
+	return (mStepMin + (mStepMax - mStepMin) * x)*att;
 }
 
 float LSparameter::GetRandomAngle()
 {
 	float x = (float)rand() / (float)(RAND_MAX + 1);
-	return mRotAngleMin + (mRotAngleMax - mRotAngleMin) * x;
+	return (mRotAngleMin + (mRotAngleMax - mRotAngleMin) * x)*XM_PI / 180.0f;
 }
 
 LSystem::LSystem() 
@@ -90,6 +98,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	orinState.pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	orinState.v = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	orinState.verIndiex = 0;
+	orinState.trunkScal = 1.0f;
 
 	//保存初始顶点
 	Vertex::PosColor orinVer;
@@ -98,16 +107,15 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	vertexs.push_back(orinVer);
 
 	//步长衰减
-	float stepDelta = 0.5f;
-	float stepAtt = 0.0f;
+	float totalStepAtt = 1.0f;
 
 	//for trunk size
-	float trunkScal = 1.0f;
+//	float trunkScal = 1.0f;
 	float trunkScalFact = param.mRadiusRate;
 
 	//记录深度
 	int depth = 1;
-
+	
 	State curState = orinState;
 	std::stack<State> stateStack; 
 	for (int i = 0; i < plantStr.size(); i++)
@@ -121,7 +129,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					XMVECTOR OPOS = XMLoadFloat3(&curState.pos);
 					XMVECTOR V = XMVector3Normalize(XMLoadFloat3(&curState.v));
 					
-					float step = param.GetRandomStep(stepAtt);
+					float step = param.GetRandomStep(totalStepAtt);
 					XMVECTOR NPOS = OPOS + V*step;
 					XMStoreFloat3(&newState.pos, NPOS);
 
@@ -129,6 +137,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					newVer.pos = newState.pos;
 					newVer.color = reinterpret_cast<const float*>(&Colors::Green);
 					newState.verIndiex = vertexs.size();
+					newState.trunkScal = curState.trunkScal*trunkScalFact;
 
 					indices.push_back(curState.verIndiex);
 					indices.push_back(newState.verIndiex);
@@ -155,11 +164,11 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 						XMStoreFloat3(&trunk.rotAxis, DIR);
 					}
 					
-
 					//树干整体缩放和长度缩放
-					trunk.sizeScal = trunkScal;
+					trunk.sizeScal = curState.trunkScal;
 					trunk.scalY = step / param.mStepMax;
 					mTrunks.push_back(trunk);
+					curState.trunkScal *= trunkScalFact;
 
 					//生成叶子
 					if (depth > param.mIterations - 1)
@@ -226,15 +235,14 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 		}
 		case '[':
 			stateStack.push(curState);	
-			stepAtt += stepDelta;
-			trunkScal = trunkScal*trunkScalFact;
+			totalStepAtt *= param.mStepAtt;
+			curState.trunkScal *=param.mTrunkSizeAtt;
 			depth++;
 			break;
 		case ']':
 			curState = stateStack.top();
 			stateStack.pop();
-			stepAtt -= stepDelta;
-			trunkScal = trunkScal/trunkScalFact;
+			totalStepAtt /= param.mStepAtt;
 			depth--;
 			break;
 		default:	

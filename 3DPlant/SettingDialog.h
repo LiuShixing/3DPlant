@@ -33,6 +33,7 @@ public:
 	CEdit mIterationsEdit;
 	CEdit mStepMinEdit;
 	CEdit mStepMaxEdit;
+	CEdit mStepAttEdit;
 	CEdit mRotAngleMinEdit;
 	CEdit mRotAngleMaxEdit;
 	CEdit mTrunkSizeEdit;
@@ -50,4 +51,6 @@ public:
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedOpen();
 	afx_msg void OnBnClickedSave();
+	
+	CEdit mTrunkSizeAttEdit;
 };
