@@ -242,22 +242,101 @@ void SettingDialog::OnBnClickedOpen()
     if (result == IDOK) {
 		filePath = openFileDlg.GetPathName();
 
-		std::ifstream is(filePath, std::ios::binary);
-		is.read((char *)&mLSparamiter, sizeof(mLSparamiter));
+		std::ifstream is(filePath);
+
+		std::string ignore;
+		is >> ignore >> mLSparamiter.mIterations
+			>> ignore >> mLSparamiter.mStepMin
+			>> ignore >> mLSparamiter.mStepMax
+			>> ignore >> mLSparamiter.mStepAtt
+			>> ignore >> mLSparamiter.mRotAngleMin
+			>> ignore >> mLSparamiter.mRotAngleMax
+			>> ignore >> mLSparamiter.mTrunkSize
+			>> ignore >> mLSparamiter.mTrunkSizeAtt
+			>> ignore >> mLSparamiter.mRadiusRate
+			>> ignore >> mLSparamiter.mLeaveSize
+			>> ignore >> mLSparamiter.mStart
+			>> ignore >> mLSparamiter.mIsTrunk
+			>> ignore >> mLSparamiter.mIsLeave
+			>> ignore >> mLSparamiter.mIsToSun
+			>> ignore >> mLSparamiter.mSunFactor;
+
+		int rulesCount;
+		is >> ignore >> rulesCount;
+		mLSparamiter.mRules.clear();
+		for (int i = 0; i < rulesCount; i++)
+		{
+			char k;
+			is >> ignore >> k;
+			int count;
+			is >> count;
+			std::vector<std::string> vs;
+			for (int j = 0; j < count; j++)
+			{
+				std::string s;
+				is >> s;
+				vs.push_back(s);
+			}
+			mLSparamiter.mRules.insert(std::make_pair(k, vs));
+		}
+
+		int vertexsCount;
+		is >> ignore >> vertexsCount;
+		gLS.mVertexs.clear();
+		gLS.mVertexs.resize(vertexsCount);
+		for (int i = 0; i < vertexsCount; i++)
+		{
+			XMFLOAT3 p;
+			XMFLOAT4 c;
+			is >> p.x >> p.y >> p.z;
+			is >> c.x >> c.y >> c.z >> c.w;
+			gLS.mVertexs[i].pos = p;
+			gLS.mVertexs[i].color = c;
+		}
+
+		int indexCount;
+		is >> ignore >> indexCount;
+		gLS.mIndices.resize(indexCount);
+		for (int i = 0; i < indexCount; i++)
+		{
+			is >> gLS.mIndices[i];
+		}
 	
-		is.read((char *)&gLS.mVertexs, sizeof(gLS.mVertexs));
-		is.read((char *)&gLS.mIndices, sizeof(gLS.mIndices));
-	
-		is.read((char *)&gLS.mTrunks, sizeof(gLS.mTrunks));
+		int trunkCount;
+		is >> ignore >> trunkCount;
+		gLS.mTrunks.resize(trunkCount);
+		for (int i = 0; i < trunkCount; i++)
+		{
+			XMFLOAT3 p;
+			XMFLOAT3 r;
+			is >> p.x >> p.y >> p.z;
+			is >> r.x >> r.y >> r.z;
+			gLS.mTrunks[i].pos = p;
+			gLS.mTrunks[i].rotAxis = r;
+			is >> gLS.mTrunks[i].sizeScal
+				>> gLS.mTrunks[i].scalY
+				>> gLS.mTrunks[i].angle;
+		}
 		
-		is.read((char *)&gLS.mLeaves, sizeof(gLS.mLeaves));
-		
+		int leafCount;
+		is >> ignore >> leafCount;
+		gLS.mLeaves.resize(leafCount);
+		for (int i = 0; i < leafCount; i++)
+		{
+			XMFLOAT3 p;
+			XMFLOAT3 r;
+			is >> p.x >> p.y >> p.z;
+			is >> r.x >> r.y >> r.z;
+			gLS.mLeaves[i].pos = p;
+			gLS.mLeaves[i].rotAxis = r;
+			is >> gLS.mLeaves[i].scal
+				>> gLS.mLeaves[i].angle;
+
+		}
+
 		is.close();
-		std::cout << "11" << std::endl;
 		UpdateData(FALSE);
-		std::cout << "7" << std::endl;
 		mDrawSavedPlant();
-		std::cout << "8" << std::endl;
 	}
 }
 
@@ -281,15 +360,79 @@ void SettingDialog::OnBnClickedSave()
 	if (result == IDOK) {
 		filePath = openFileDlg.GetPathName();
 
-		std::ofstream os(filePath,std::ios::binary);
-		os.write((char *)&mLSparamiter, sizeof(mLSparamiter));
+		std::ofstream os(filePath);
 
-		os.write((char *)&gLS.mVertexs, sizeof(gLS.mVertexs));
-		os.write((char *)&gLS.mIndices, sizeof(gLS.mIndices));
+		using namespace std;
+		os << "Iterations: " << mLSparamiter.mIterations << endl
+			<< "StepMin: " << mLSparamiter.mStepMin << endl
+			<< "StepMax: " << mLSparamiter.mStepMax << endl
+			<< "StepAtt: " << mLSparamiter.mStepAtt << endl
+			<< "RotAngleMin: " << mLSparamiter.mRotAngleMin << endl
+			<< "RotAngleMax: " << mLSparamiter.mRotAngleMax << endl
+			<< "TrunkSize: " << mLSparamiter.mTrunkSize << endl
+			<< "TrunkSizeAtt: " << mLSparamiter.mTrunkSizeAtt << endl
+			<< "RadiusRate: " << mLSparamiter.mRadiusRate << endl
+			<< "LeaveSize: " << mLSparamiter.mLeaveSize << endl
+			<< "Start: " << mLSparamiter.mStart << endl
+			<< "IsTrunk: " << mLSparamiter.mIsTrunk << endl
+			<< "IsLeave: " << mLSparamiter.mIsLeave << endl
+			<< "IsToSun: " << mLSparamiter.mIsToSun << endl
+			<< "SunFactor: " << mLSparamiter.mSunFactor << endl;
+		os << endl;
+		os << "RulesCount: "<<mLSparamiter.mRules.size() << endl;
+		for (std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
+		{
+			char k = it->first;
+			vector<string> vs = it->second;
 
-		os.write((char *)&gLS.mTrunks, sizeof(gLS.mTrunks));
+			os << "key: " << k << endl;
+			os << vs.size() << endl;
+			for (int i = 0; i < vs.size(); i++)
+				os << vs[i] << endl;
+			os << endl;
+		}
 
-		os.write((char *)&gLS.mLeaves, sizeof(gLS.mLeaves));
+
+		os << "vertexsCount: " << gLS.mVertexs.size() << endl;
+		for (int i = 0; i < gLS.mVertexs.size(); i++)
+		{
+			XMFLOAT3 p = gLS.mVertexs[i].pos;
+			XMFLOAT4 c = gLS.mVertexs[i].color;
+			os << p.x << " " << p.y << " " << p.z << endl;
+			os << c.x << " " << c.y << " " << c.z << " " << c.w << endl;
+		}
+
+		os << "indexCount: " << gLS.mIndices.size() << endl;
+		for (int i = 0; i < gLS.mIndices.size(); i++)
+			os << gLS.mIndices[i] << " ";
+		os << endl;
+
+		os << "trunkCount: " << gLS.mTrunks.size() << endl;
+		for (int i = 0; i < gLS.mTrunks.size(); i++)
+		{
+			XMFLOAT3 p = gLS.mTrunks[i].pos;
+			XMFLOAT3 r = gLS.mTrunks[i].rotAxis;
+			os << p.x << " " << p.y << " " << p.z << endl;
+			os << r.x << " " << r.y << " " << r.z << endl;
+			os << gLS.mTrunks[i].sizeScal << endl
+				<< gLS.mTrunks[i].scalY << endl
+				<< gLS.mTrunks[i].angle << endl;
+		}
+		os << endl;
+
+		os << "leafCount: " << gLS.mLeaves.size() << endl;
+		for (int i = 0; i < gLS.mLeaves.size(); i++)
+		{
+			XMFLOAT3 p = gLS.mLeaves[i].pos;
+			XMFLOAT3 r = gLS.mLeaves[i].rotAxis;
+			os << p.x << " " << p.y << " " << p.z << endl;
+			os << r.x << " " << r.y << " " << r.z << endl;
+			os << gLS.mLeaves[i].scal << endl
+				<< gLS.mLeaves[i].angle << endl;
+		}
+		os << endl;
+
+	
 		os.close();
 	}
 }

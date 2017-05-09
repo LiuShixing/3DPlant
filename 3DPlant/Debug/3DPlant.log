@@ -1,59 +1,12 @@
-﻿生成启动时间为 2017/5/9 12:05:30。
+﻿生成启动时间为 2017/5/9 17:05:23。
      1>项目“D:\毕业设计\代码\3DPlant\3DPlant\3DPlant.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
-         D:\VS2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _UNICODE /D UNICODE /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\3DPlant.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt SettingDialog.cpp
-         SettingDialog.cpp
-     1>d:\microsoft directx sdk (february 2010)\include\d3d11.h(925): warning C4005: “D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS”: 宏重定义
-                 c:\program files (x86)\windows kits\8.1\include\shared\winerror.h(50379) : 参见“D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS”的前一个定义
-     1>d:\microsoft directx sdk (february 2010)\include\d3d11.h(926): warning C4005: “D3D11_ERROR_FILE_NOT_FOUND”: 宏重定义
-                 c:\program files (x86)\windows kits\8.1\include\shared\winerror.h(50388) : 参见“D3D11_ERROR_FILE_NOT_FOUND”的前一个定义
-     1>d:\microsoft directx sdk (february 2010)\include\d3d11.h(927): warning C4005: “D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS”: 宏重定义
-                 c:\program files (x86)\windows kits\8.1\include\shared\winerror.h(50398) : 参见“D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS”的前一个定义
-     1>d:\microsoft directx sdk (february 2010)\include\d3d11.h(928): warning C4005: “D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD”: 宏重定义
-                 c:\program files (x86)\windows kits\8.1\include\shared\winerror.h(50407) : 参见“D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD”的前一个定义
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(35): warning C4018: “<”: 有符号/无符号不匹配
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(171): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(173): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(175): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(177): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(179): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(181): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(183): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(185): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(188): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(190): warning C4800: “int”: 将值强制为布尔值“true”或“false”(性能警告)
-     1>d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(197): warning C4244: “=”: 从“wchar_t”转换到“char”，可能丢失数据
-     1>d:\vs2013\vc\include\xutility(2045): warning C4244: “=”: 从“wchar_t”转换到“char”，可能丢失数据
-                 d:\vs2013\vc\include\xutility(2066): 参见对正在编译的函数 模板 实例化“_OutIt std::_Copy_impl<_InIt,_OutIt>(_InIt,_InIt,_OutIt,std::_Nonscalar_ptr_iterator_tag)”的引用
-                 with
-                 [
-                     _OutIt=char *
-         ,            _InIt=wchar_t *
-                 ]
-                 d:\vs2013\vc\include\xutility(2097): 参见对正在编译的函数 模板 实例化“_OutIt std::_Copy_impl<_InIt,char*>(_InIt,_InIt,_OutIt)”的引用
-                 with
-                 [
-                     _OutIt=char *
-         ,            _InIt=wchar_t *
-                 ]
-                 d:\vs2013\vc\include\xutility(2107): 参见对正在编译的函数 模板 实例化“_OutIt std::_Copy_impl<_InIt,_OutIt>(_InIt,_InIt,_OutIt,std::random_access_iterator_tag,std::random_access_iterator_tag)”的引用
-                 with
-                 [
-                     _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>
-         ,            _InIt=wchar_t *
-                 ]
-                 d:\vs2013\vc\include\xutility(2132): 参见对正在编译的函数 模板 实例化“_OutIt std::_Copy_impl<wchar_t*,_OutIt>(_InIt,_InIt,_OutIt,std::true_type)”的引用
-                 with
-                 [
-                     _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>
-         ,            _InIt=wchar_t *
-                 ]
-                 d:\毕业设计\代码\3dplant\3dplant\settingdialog.cpp(137): 参见对正在编译的函数 模板 实例化“_OutIt std::copy<std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,std::_String_iterator<std::_String_val<std::_Simple_types<char>>>>(_InIt,_InIt,_OutIt)”的引用
-                 with
-                 [
-                     _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>
-         ,            _InIt=std::_String_iterator<std::_String_val<std::_Simple_types<wchar_t>>>
-                 ]
+         D:\VS2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _UNICODE /D UNICODE /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\3DPlant.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt LSystem.cpp
+         LSystem.cpp
+     1>d:\毕业设计\代码\3dplant\3dplant\lsystem.cpp(35): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+     1>d:\毕业设计\代码\3dplant\3dplant\lsystem.cpp(90): warning C4018: “<”: 有符号/无符号不匹配
+     1>d:\毕业设计\代码\3dplant\3dplant\lsystem.cpp(122): warning C4018: “<”: 有符号/无符号不匹配
+     1>d:\毕业设计\代码\3dplant\3dplant\lsystem.cpp(175): warning C4018: “>”: 有符号/无符号不匹配
        Link:
          D:\VS2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\毕业设计\代码\3DPlant\Debug\3DPlant.exe" /INCREMENTAL /NOLOGO /LIBPATH:"D:\Autodesk FBX SDK\2016.1.2\lib\vs2013\x86\debug" d3d11.lib d3dx11d.lib D3DCompiler.lib D3DX11EffectsD.lib dxerr.lib dxgi.lib dxguid.lib wininet.lib libfbxsdk.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:D:\VS2013\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"D:\毕业设计\代码\3DPlant\Debug\3DPlant.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /ENTRY:"wWinMainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\毕业设计\代码\3DPlant\Debug\3DPlant.lib" /MACHINE:X86 Debug\3DPlant.res
          Debug\3DPlant.obj
@@ -74,4 +27,4 @@
 
 生成成功。
 
-已用时间 00:00:02.61
+已用时间 00:00:04.04

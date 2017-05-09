@@ -61,7 +61,7 @@ public:
 	char  mStart;
 	int mIsTrunk;
 	int mIsLeave;
-	bool  mIsToSun;
+	int  mIsToSun;
 	float mSunFactor;
 	std::map<char, std::vector<std::string> > mRules;
 
@@ -72,16 +72,16 @@ public:
 struct Trunk
 {
 	XMFLOAT3 pos;
+	XMFLOAT3 rotAxis;
 	float sizeScal;
 	float scalY;
-	XMFLOAT3 rotAxis;
 	float    angle;
 };
 struct Leave
 {
 	XMFLOAT3 pos;
-	float scal;
 	XMFLOAT3 rotAxis;
+	float scal;
 	float    angle;
 };
 

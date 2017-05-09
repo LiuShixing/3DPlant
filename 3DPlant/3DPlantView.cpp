@@ -98,10 +98,9 @@ void UpdatePlant()
 
 void DrawSavedPlant()
 {
-	std::cout << "9" << std::endl;
 	gD3d.ReleaseVIBuffer();
 	gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
-	std::cout << "1" << std::endl;
+
 	//
 	std::vector<Vertex::PosTex> vertexs2;
 	std::vector<UINT> indices2;
@@ -111,7 +110,7 @@ void DrawSavedPlant()
 	gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2);
 	gD3d.CreateTrunkVIBuffer(vertexs2, indices2);
 	gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.png");
-	std::cout << "2" << std::endl;
+
 	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
 }
 

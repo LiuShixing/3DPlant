@@ -470,7 +470,7 @@ bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vecto
 	
 	D3D11_SUBRESOURCE_DATA vbdata = { 0 };
 	vbdata.pSysMem = &vertexs[0];
-
+	
 	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpVB)))
 		return 0;
 	
@@ -485,7 +485,7 @@ bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vecto
 	ibdata.pSysMem = &indices[0];
 	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpIB)))
 		return 0;
-
+	
 	return 1;
 }
 

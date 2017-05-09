@@ -112,7 +112,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 
 	//for trunk size
 //	float trunkScal = 1.0f;
-	float trunkScalFact = param.mRadiusRate;
+//	float trunkScalFact = param.mRadiusRate;
 
 	//记录深度
 	int depth = 1;
@@ -138,7 +138,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					newVer.pos = newState.pos;
 					newVer.color = reinterpret_cast<const float*>(&Colors::Green);
 					newState.verIndiex = vertexs.size();
-					newState.trunkScal = curState.trunkScal*trunkScalFact;
+					newState.trunkScal = curState.trunkScal*param.mRadiusRate;
 
 					indices.push_back(curState.verIndiex);
 					indices.push_back(newState.verIndiex);
@@ -169,7 +169,7 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					trunk.sizeScal = curState.trunkScal;
 					trunk.scalY = step / param.mStepMax;
 					mTrunks.push_back(trunk);
-					curState.trunkScal *= trunkScalFact;
+				//	curState.trunkScal *= param.mRadiusRate;
 
 					//生成叶子
 					if (depth > param.mIterations - 1)
