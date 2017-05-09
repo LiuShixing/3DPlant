@@ -3,7 +3,7 @@
 
 
 LSparameter::LSparameter() :mIsTrunk(1)
-, mIsLeave(1)
+, mIsLeave(1), mIsToSun(true)
 {
 	mIterations = 5;
 	mStepMin = 1.0f;
@@ -14,6 +14,7 @@ LSparameter::LSparameter() :mIsTrunk(1)
 	mTrunkSize = 0.3f;
 	mTrunkSizeAtt = 1.0f;
 	mRadiusRate = 0.6f;
+	mSunFactor = 0.6f;
 	//ƒ¨»œπÊ‘Ú
 	std::vector<std::string> vs;
 	std::string defaultRule("F[z+x-X][z-x-X][x+X]");
@@ -212,6 +213,10 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 
 					XMVECTOR OldV = XMLoadFloat3(&curState.v); 
 					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationX(angle)));
+					
+					if (param.mIsToSun)
+						ToSun(NewV, param.mSunFactor);
+
 					XMStoreFloat3(&curState.v, NewV);
 					break;
 		}
@@ -221,6 +226,8 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					float angle = plantStr[++i] == '+' ? tmpa : -tmpa;
 					XMVECTOR OldV = XMLoadFloat3(&curState.v);
 					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationY(angle)));
+					if (param.mIsToSun)
+						ToSun(NewV, param.mSunFactor);
 					XMStoreFloat3(&curState.v, NewV);
 					break;
 		}
@@ -230,6 +237,8 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					float angle = plantStr[++i] == '+' ? tmpa : -tmpa;
 					XMVECTOR OldV = XMLoadFloat3(&curState.v);
 					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationZ(angle)));
+					if (param.mIsToSun)
+						ToSun(NewV, param.mSunFactor);
 					XMStoreFloat3(&curState.v, NewV);
 					break;
 		}
@@ -249,6 +258,10 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 			break;
 		}
 	}
-	std::cout <<"indices.size "<< indices.size() << std::endl;
-	std::cout << "mTrunks.size " << mTrunks.size() << std::endl;
+}
+
+void LSystem::ToSun(XMVECTOR& V, float factor)
+{
+	XMVECTOR toLight = XMVector3Normalize(XMVectorSet(-1.0f, 1.0f, 0.0f, 1.0f));
+	V += toLight*factor*0.2f;
 }

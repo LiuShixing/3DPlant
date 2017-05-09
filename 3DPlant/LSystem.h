@@ -61,6 +61,8 @@ public:
 	char  mStart;
 	int mIsTrunk;
 	int mIsLeave;
+	bool  mIsToSun;
+	float mSunFactor;
 	std::map<char, std::vector<std::string> > mRules;
 
 	std::string GetRandomRule(char key);
@@ -89,7 +91,10 @@ public:
 	LSystem();
 	~LSystem();
 	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
+	void ToSun(XMVECTOR& V,float factor);
 	std::vector<Trunk> mTrunks;
 	std::vector<Leave> mLeaves;
+	std::vector<Vertex::PosColor> mVertexs;
+	std::vector<UINT> mIndices;
 };
 

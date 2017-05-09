@@ -264,9 +264,9 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 
 	//--------------------------------draw------------------------------------------------------------------
 	//std::cout << "d3d draw" << std::endl;
-	this->md3dImmediateContext->ClearRenderTargetView(this->mRenderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	this->md3dImmediateContext->ClearRenderTargetView(this->mRenderTargetView, reinterpret_cast<const float*>(&Colors::White));
 	this->md3dImmediateContext->ClearDepthStencilView(this->mDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
+	//LightSteelBlue
 	UINT stride;
 	UINT offset;
 	D3DX11_TECHNIQUE_DESC techDesc;

@@ -78,12 +78,12 @@ SettingDialog gSettingDia;
 void UpdatePlant()
 {
 	std::cout << "UpdatePlant" << std::endl;
-	std::vector<Vertex::PosColor> vertexs;
-	std::vector<UINT> indices;
+//	std::vector<Vertex::PosColor> vertexs;
+//	std::vector<UINT> indices;
 
-	gLS.CreatePlant(vertexs, indices, gSettingDia.mLSparamiter);
+	gLS.CreatePlant(gLS.mVertexs, gLS.mIndices, gSettingDia.mLSparamiter);
 	gD3d.ReleaseVIBuffer();
-	gD3d.CreateVIBuffer(vertexs, indices);
+	gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
 //
 	std::vector<Vertex::PosTex> vertexs2;
 	std::vector<UINT> indices2;
@@ -93,6 +93,25 @@ void UpdatePlant()
 	gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2);
 	gD3d.CreateTrunkVIBuffer(vertexs2, indices2);
 	gD3d.CreateShaderRV(L"res/trunk.dds",L"res/leave.png");
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+}
+
+void DrawSavedPlant()
+{
+	std::cout << "9" << std::endl;
+	gD3d.ReleaseVIBuffer();
+	gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
+	std::cout << "1" << std::endl;
+	//
+	std::vector<Vertex::PosTex> vertexs2;
+	std::vector<UINT> indices2;
+	float buttomR = gSettingDia.mLSparamiter.mTrunkSize;
+	float topR = gSettingDia.mLSparamiter.mTrunkSize * gSettingDia.mLSparamiter.mRadiusRate;
+	float height = gSettingDia.mLSparamiter.mStepMax;
+	gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2);
+	gD3d.CreateTrunkVIBuffer(vertexs2, indices2);
+	gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.png");
+	std::cout << "2" << std::endl;
 	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
 }
 
@@ -114,6 +133,7 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 		//创建设置对话框
 		gSettingDia.Create(IDD_SETTINGDIALOG);
 		gSettingDia.mpSettingOkClick = UpdatePlant;
+		gSettingDia.mDrawSavedPlant = DrawSavedPlant;
 		gSettingDia.ShowWindow(SW_SHOWNORMAL);   //显示默认植物参数
 
 		//初始化Direct3D
@@ -123,10 +143,10 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 		
 		//生成默认植物
 		std::cout << gSettingDia.mLSparamiter.mRules['X'][0] << std::endl;
-		std::vector<Vertex::PosColor> vertexs;
-		std::vector<UINT> indices; 
-		gLS.CreatePlant(vertexs, indices, gSettingDia.mLSparamiter);
-		gD3d.CreateVIBuffer(vertexs, indices);
+	//	std::vector<Vertex::PosColor> vertexs;
+	//	std::vector<UINT> indices; 
+		gLS.CreatePlant(gLS.mVertexs, gLS.mIndices, gSettingDia.mLSparamiter);
+		gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
 
 		std::cout << "0" << std::endl;
 		std::vector<Vertex::PosTex> vertexs2;

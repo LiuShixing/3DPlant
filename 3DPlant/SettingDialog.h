@@ -30,6 +30,7 @@ public:
 	void AddRules(CString& text);
 
 	void (*mpSettingOkClick)();
+	void(*mDrawSavedPlant)();
 	CEdit mIterationsEdit;
 	CEdit mStepMinEdit;
 	CEdit mStepMaxEdit;
@@ -53,4 +54,8 @@ public:
 	afx_msg void OnBnClickedSave();
 	
 	CEdit mTrunkSizeAttEdit;
+	CEdit mToSunFactorEdit;
+	CButton mIsToSunCheck;
+	afx_msg void OnBnClickedCheck1();
+	afx_msg void OnBnClickedCheck2();
 };

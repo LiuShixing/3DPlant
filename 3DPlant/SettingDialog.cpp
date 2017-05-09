@@ -5,6 +5,7 @@
 #include "3DPlant.h"
 #include "SettingDialog.h"
 #include "afxdialogex.h"
+#include"Direct3D.h"
 #include<fstream>
 
 // SettingDialog ¶Ô»°¿ò
@@ -110,7 +111,12 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	mIsTrunkCheck.SetCheck(mLSparamiter.mIsTrunk);
 	mIsLeaveCheck.SetCheck(mLSparamiter.mIsLeave);
 
-	
+
+	DDX_Control(pDX, IDC_EDIT15, mToSunFactorEdit);
+	DDX_Text(pDX, IDC_EDIT15, mLSparamiter.mSunFactor);
+
+	DDX_Control(pDX, IDC_CHECK3, mIsToSunCheck);
+	mIsToSunCheck.SetCheck(mLSparamiter.mIsToSun);
 }
 
 
@@ -118,6 +124,8 @@ BEGIN_MESSAGE_MAP(SettingDialog, CDialog)
 	ON_BN_CLICKED(IDC_OK, &SettingDialog::OnBnClickedOk)
 	ON_BN_CLICKED(IDC_OPEN, &SettingDialog::OnBnClickedOpen)
 	ON_BN_CLICKED(IDC_SAVE, &SettingDialog::OnBnClickedSave)
+	ON_BN_CLICKED(IDC_CHECK1, &SettingDialog::OnBnClickedCheck1)
+	ON_BN_CLICKED(IDC_CHECK2, &SettingDialog::OnBnClickedCheck2)
 END_MESSAGE_MAP()
 
 
@@ -176,9 +184,15 @@ void SettingDialog::OnBnClickedOk()
 	mRadiusRateEdit.GetWindowText(text);
 	mLSparamiter.mRadiusRate = _ttof(text);
 
+	mToSunFactorEdit.GetWindowText(text);
+	mLSparamiter.mSunFactor = _ttof(text);
+
+	mLSparamiter.mIsToSun = mIsToSunCheck.GetCheck();
+
 	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
 	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
-	std::cout << "fdfdf = " << mLSparamiter.mIsTrunk << std::endl;
+	
+
 	mStartEdit.GetWindowText(text);
 	mLSparamiter.mStart = text[0];
 
@@ -205,6 +219,9 @@ void SettingDialog::OnBnClickedOk()
 	}
 }
 
+extern LSystem  gLS;
+extern Direct3D gD3d;
+extern SettingDialog gSettingDia;
 
 void SettingDialog::OnBnClickedOpen()
 {
@@ -227,8 +244,20 @@ void SettingDialog::OnBnClickedOpen()
 
 		std::ifstream is(filePath, std::ios::binary);
 		is.read((char *)&mLSparamiter, sizeof(mLSparamiter));
+	
+		is.read((char *)&gLS.mVertexs, sizeof(gLS.mVertexs));
+		is.read((char *)&gLS.mIndices, sizeof(gLS.mIndices));
+	
+		is.read((char *)&gLS.mTrunks, sizeof(gLS.mTrunks));
+		
+		is.read((char *)&gLS.mLeaves, sizeof(gLS.mLeaves));
+		
 		is.close();
+		std::cout << "11" << std::endl;
 		UpdateData(FALSE);
+		std::cout << "7" << std::endl;
+		mDrawSavedPlant();
+		std::cout << "8" << std::endl;
 	}
 }
 
@@ -254,6 +283,13 @@ void SettingDialog::OnBnClickedSave()
 
 		std::ofstream os(filePath,std::ios::binary);
 		os.write((char *)&mLSparamiter, sizeof(mLSparamiter));
+
+		os.write((char *)&gLS.mVertexs, sizeof(gLS.mVertexs));
+		os.write((char *)&gLS.mIndices, sizeof(gLS.mIndices));
+
+		os.write((char *)&gLS.mTrunks, sizeof(gLS.mTrunks));
+
+		os.write((char *)&gLS.mLeaves, sizeof(gLS.mLeaves));
 		os.close();
 	}
 }
@@ -262,3 +298,16 @@ void SettingDialog::OnBnClickedSave()
 
 
 */
+
+void SettingDialog::OnBnClickedCheck1()
+{
+	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+}
+
+
+void SettingDialog::OnBnClickedCheck2()
+{
+	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
+	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+}
