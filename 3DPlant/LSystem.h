@@ -63,6 +63,7 @@ public:
 	int mIsLeave;
 	int  mIsToSun;
 	float mSunFactor;
+	int  mLeafOrder;
 	std::map<char, std::vector<std::string> > mRules;
 
 	std::string GetRandomRule(char key);
@@ -82,7 +83,8 @@ struct Leave
 	XMFLOAT3 pos;
 	XMFLOAT3 rotAxis;
 	float scal;
-	float    angle;
+	float angle;
+	float rotY;
 };
 
 class LSystem

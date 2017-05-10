@@ -58,4 +58,12 @@ public:
 	CButton mIsToSunCheck;
 	afx_msg void OnBnClickedCheck1();
 	afx_msg void OnBnClickedCheck2();
+	CEdit mLeafSizeEdit;
+	CButton mLeafOrderButton;
+	int mLeafOrder;
+	afx_msg void OnBnClickedRadio1();
+	afx_msg void OnBnClickedRadio2();
+	afx_msg void OnBnClickedRadio3();
+	BOOL mLeafOrder0Ctrl;
+	int mLeafOrder1Ctrl;
 };

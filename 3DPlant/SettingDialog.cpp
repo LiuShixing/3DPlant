@@ -14,6 +14,9 @@ IMPLEMENT_DYNAMIC(SettingDialog, CDialog)
 
 SettingDialog::SettingDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(SettingDialog::IDD, pParent)
+	, mLeafOrder(0)
+	, mLeafOrder0Ctrl(FALSE)
+	, mLeafOrder1Ctrl(0)
 {
 
 }
@@ -68,6 +71,8 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT12, mRadiusRateEdit);
 	DDX_Text(pDX, IDC_EDIT12, mLSparamiter.mRadiusRate);
 
+	DDX_Control(pDX, IDC_EDIT16, mLeafSizeEdit);
+	DDX_Text(pDX, IDC_EDIT16, mLSparamiter.mLeaveSize);
 
 	CString Start(mLSparamiter.mStart);
 	DDX_Control(pDX, IDC_EDIT11, mStartEdit);
@@ -117,6 +122,20 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_CHECK3, mIsToSunCheck);
 	mIsToSunCheck.SetCheck(mLSparamiter.mIsToSun);
+
+	mLeafOrder = mLSparamiter.mLeafOrder;
+	if(mLeafOrder==0)
+	{
+		((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(TRUE);//选上
+	}
+	else if (mLeafOrder == 1)
+	{
+		((CButton *)GetDlgItem(IDC_RADIO2))->SetCheck(TRUE);//选上
+	}
+	else if(mLeafOrder == 2)
+	{
+		((CButton *)GetDlgItem(IDC_RADIO3))->SetCheck(TRUE);//选上
+	}
 }
 
 
@@ -126,6 +145,9 @@ BEGIN_MESSAGE_MAP(SettingDialog, CDialog)
 	ON_BN_CLICKED(IDC_SAVE, &SettingDialog::OnBnClickedSave)
 	ON_BN_CLICKED(IDC_CHECK1, &SettingDialog::OnBnClickedCheck1)
 	ON_BN_CLICKED(IDC_CHECK2, &SettingDialog::OnBnClickedCheck2)
+	ON_BN_CLICKED(IDC_RADIO1, &SettingDialog::OnBnClickedRadio1)
+	ON_BN_CLICKED(IDC_RADIO2, &SettingDialog::OnBnClickedRadio2)
+	ON_BN_CLICKED(IDC_RADIO3, &SettingDialog::OnBnClickedRadio3)
 END_MESSAGE_MAP()
 
 
@@ -187,12 +209,17 @@ void SettingDialog::OnBnClickedOk()
 	mToSunFactorEdit.GetWindowText(text);
 	mLSparamiter.mSunFactor = _ttof(text);
 
+	mLeafSizeEdit.GetWindowText(text);
+	mLSparamiter.mLeaveSize = _ttof(text);
+
 	mLSparamiter.mIsToSun = mIsToSunCheck.GetCheck();
 
 	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
 	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
-	
 
+	mLSparamiter.mLeafOrder = mLeafOrder;
+	
+	std::cout << "mLSparamiter.mLeafOrder " << mLSparamiter.mLeafOrder << std::endl;
 	mStartEdit.GetWindowText(text);
 	mLSparamiter.mStart = text[0];
 
@@ -330,7 +357,8 @@ void SettingDialog::OnBnClickedOpen()
 			gLS.mLeaves[i].pos = p;
 			gLS.mLeaves[i].rotAxis = r;
 			is >> gLS.mLeaves[i].scal
-				>> gLS.mLeaves[i].angle;
+				>> gLS.mLeaves[i].angle
+				>> gLS.mLeaves[i].rotY;
 
 		}
 
@@ -428,7 +456,8 @@ void SettingDialog::OnBnClickedSave()
 			os << p.x << " " << p.y << " " << p.z << endl;
 			os << r.x << " " << r.y << " " << r.z << endl;
 			os << gLS.mLeaves[i].scal << endl
-				<< gLS.mLeaves[i].angle << endl;
+				<< gLS.mLeaves[i].angle << endl
+				<< gLS.mLeaves[i].rotY << endl;
 		}
 		os << endl;
 
@@ -453,4 +482,22 @@ void SettingDialog::OnBnClickedCheck2()
 {
 	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
 	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+}
+
+
+void SettingDialog::OnBnClickedRadio1()
+{
+	mLeafOrder = 0;
+}
+
+
+void SettingDialog::OnBnClickedRadio2()
+{
+	mLeafOrder = 1;
+}
+
+
+void SettingDialog::OnBnClickedRadio3()
+{
+	mLeafOrder = 2;
 }

@@ -3,7 +3,7 @@
 
 
 LSparameter::LSparameter() :mIsTrunk(1)
-, mIsLeave(1), mIsToSun(true)
+, mIsLeave(1), mIsToSun(true), mLeaveSize(1.0f), mLeafOrder(2)
 {
 	mIterations = 5;
 	mStepMin = 1.0f;
@@ -178,32 +178,129 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 			//		if (depth > param.mIterations - 1 )
 					if (plantStr[i + 1] == ']' || depth > param.mIterations - 1)
 					{
-						param.mLeaveSize = 1.0f;
-						Leave leave1;
-						leave1.pos.x = (curState.pos.x + newState.pos.x) / 2.0f;
-						leave1.pos.y = (curState.pos.y + newState.pos.y) / 2.0f;
-						leave1.pos.z = (curState.pos.z + newState.pos.z) / 2.0f;
-						leave1.rotAxis = trunk.rotAxis;
-						leave1.angle = trunk.angle;
-						leave1.scal = param.mLeaveSize;
+						XMVECTOR LP, NP, CP, CV;
+						CP = XMLoadFloat3(&curState.pos);
+						CV = XMLoadFloat3(&curState.v);
+						NP = XMLoadFloat3(&newState.pos);
 
-						//两对叶子
-						mLeaves.push_back(leave1);
-						mLeaves.push_back(leave1);
-						mLeaves.push_back(leave1);
-						mLeaves.push_back(leave1);
+						XMFLOAT3 TMP;
+						XMStoreFloat3(&TMP, XMVector3Length(NP - CP));
 
-						Leave leave2;
-						leave2.pos = newState.pos;
-						leave2.rotAxis = trunk.rotAxis;
-						leave2.angle = trunk.angle;
-						leave2.scal = param.mLeaveSize;
+						float dt = 0.5f;
+						int count = TMP.x / dt;
 
-						//两对叶子
-						mLeaves.push_back(leave2);
-						mLeaves.push_back(leave2);
-						mLeaves.push_back(leave2);
-						mLeaves.push_back(leave2);
+						if (param.mLeafOrder == 0)
+						{
+							//互生叶序
+							Leave leave;
+							leave.rotAxis = trunk.rotAxis;
+							leave.angle = trunk.angle;
+							leave.scal = param.mLeaveSize;
+
+							float rotY[2][2] = { { 0.0f, XM_PI },{ XM_PI / 2.0f, XM_PI*1.5f } };
+							int j;
+							for (j = 0; j < count; j++)
+							{
+								LP = CP + CV*dt*j;
+								XMStoreFloat3(&leave.pos, LP);
+								leave.rotY = rotY[i%2][j % 2];
+								mLeaves.push_back(leave);
+							}
+							//枝端的叶子
+							leave.pos = newState.pos;
+							leave.rotY = rotY[i % 2][j % 2];
+							mLeaves.push_back(leave);
+						}
+						else if (param.mLeafOrder == 1)
+						{
+							//对生叶序
+							Leave leave;
+							leave.rotAxis = trunk.rotAxis;
+							leave.angle = trunk.angle;
+							leave.scal = param.mLeaveSize;
+							float rotY[2][2] = { { 0.0f, XM_PI }, { XM_PI / 2.0f, XM_PI*1.5f } };
+							int j;
+							for (j = 0; j < count; j++)
+							{
+								LP = CP + CV*dt*j;
+								XMStoreFloat3(&leave.pos, LP);
+								leave.rotY = rotY[i%2][j % 2];
+								mLeaves.push_back(leave);
+
+								//相对那片
+								leave.rotY = rotY[i%2][(j + 1) % 2];
+								mLeaves.push_back(leave);
+							}
+							leave.pos = newState.pos;
+							leave.rotY = rotY[i % 2][j % 2];
+							mLeaves.push_back(leave);
+							leave.rotY = rotY[i % 2][(j + 1) % 2];
+							mLeaves.push_back(leave);
+						}
+						else if (param.mLeafOrder == 2)
+						{
+							//轮生叶序
+							dt = 0.5f;
+							count = TMP.x / dt;
+							Leave leave;
+							leave.rotAxis = trunk.rotAxis;
+							leave.angle = trunk.angle;
+							leave.scal = param.mLeaveSize;
+							float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI , XM_PI*1.5f };
+							int j;
+							for (j = 0; j < count; j++)
+							{
+								LP = CP + CV*dt*j;
+								XMStoreFloat3(&leave.pos, LP);
+								for (int k = 0; k < 4; k++)
+								{
+									leave.rotY = rotY[k % 4];
+									mLeaves.push_back(leave);
+								}
+							}
+							leave.pos = newState.pos;
+							for (int k = 0; k < 4; k++)
+							{
+								leave.rotY = rotY[k % 4];
+								mLeaves.push_back(leave);
+							}
+
+/*
+							Leave leave1;
+							leave1.pos.x = (curState.pos.x + newState.pos.x) / 2.0f;
+							leave1.pos.y = (curState.pos.y + newState.pos.y) / 2.0f;
+							leave1.pos.z = (curState.pos.z + newState.pos.z) / 2.0f;
+							leave1.rotAxis = trunk.rotAxis;
+							leave1.angle = trunk.angle;
+							leave1.scal = param.mLeaveSize;
+
+							//两对叶子
+							leave1.rotY = 0.0f;
+							mLeaves.push_back(leave1);
+							leave1.rotY = XM_PI / 2.0f;
+							mLeaves.push_back(leave1);
+							leave1.rotY = XM_PI;
+							mLeaves.push_back(leave1);
+							leave1.rotY = XM_PI*1.5f;
+							mLeaves.push_back(leave1);
+
+							Leave leave2;
+							leave2.pos = newState.pos;
+							leave2.rotAxis = trunk.rotAxis;
+							leave2.angle = trunk.angle;
+							leave2.scal = param.mLeaveSize;
+
+							//两对叶子
+							leave2.rotY = 0.0f;
+							mLeaves.push_back(leave2);
+							leave2.rotY = XM_PI / 2.0f;
+							mLeaves.push_back(leave2);
+							leave2.rotY = XM_PI;
+							mLeaves.push_back(leave2);
+							leave2.rotY = XM_PI*1.5f;
+							mLeaves.push_back(leave2);
+							*/
+						}
 					}
 
 					vertexs.push_back(newVer);

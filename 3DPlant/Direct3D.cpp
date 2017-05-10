@@ -329,10 +329,10 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 		offset = 0;
 		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLeaveVB, &stride, &offset);
 		this->md3dImmediateContext->IASetIndexBuffer(mpLeaveIB, DXGI_FORMAT_R32_UINT, 0);
-		float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI, XM_PI*1.5f };
+
 		for (int i = 0; i < leaves.size(); i++)
 		{
-			XMMATRIX RotYM = XMMatrixRotationY(rotY[i % 4]);
+			XMMATRIX RotYM = XMMatrixRotationY(leaves[i].rotY);
 			XMMATRIX sizeScal = XMMatrixScaling(leaves[i].scal, leaves[i].scal, leaves[i].scal);
 			world = XMMatrixTranslation(leaves[i].pos.x, leaves[i].pos.y, leaves[i].pos.z);
 			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&leaves[i].rotAxis), leaves[i].angle);
