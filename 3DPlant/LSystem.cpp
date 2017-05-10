@@ -116,10 +116,13 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 
 	//记录深度
 	int depth = 1;
+
+	//给L字符串末尾加]
+	plantStr += "]";
 	
 	State curState = orinState;
 	std::stack<State> stateStack; 
-	for (int i = 0; i < plantStr.size(); i++)
+	for (int i = 0; i < plantStr.size()-1; i++)
 	{
 		switch (plantStr[i])
 		{
@@ -172,7 +175,8 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 				//	curState.trunkScal *= param.mRadiusRate;
 
 					//生成叶子
-					if (depth > param.mIterations - 1)
+			//		if (depth > param.mIterations - 1 )
+					if (plantStr[i + 1] == ']' || depth > param.mIterations - 1)
 					{
 						param.mLeaveSize = 1.0f;
 						Leave leave1;
