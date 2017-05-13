@@ -27,7 +27,7 @@ protected:
 public:
 	afx_msg void OnBnClickedOk();
 
-	void AddRules(CString& text);
+	void AddRules(CString& text, float prob);
 
 	void (*mpSettingOkClick)();
 	void(*mDrawSavedPlant)();
@@ -66,4 +66,9 @@ public:
 	afx_msg void OnBnClickedRadio3();
 	BOOL mLeafOrder0Ctrl;
 	int mLeafOrder1Ctrl;
+	CEdit mProb1Edit;
+	CEdit mProb2Edit;
+	CEdit mProb3Edit;
+	CEdit mProb4Edit;
+	CEdit mProb5Edit;
 };

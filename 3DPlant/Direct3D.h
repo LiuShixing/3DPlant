@@ -104,6 +104,7 @@ private:
 	ID3DX11EffectShaderResourceVariable*   mDiffuseMap;
 
 	ID3D11RasterizerState*   mNoBackRS;
+	ID3D11RasterizerState*   mWireframeRS;
 	//
 	XMFLOAT4X4  mWorld;
 	XMFLOAT4X4  mView;

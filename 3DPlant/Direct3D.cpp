@@ -154,6 +154,14 @@ bool Direct3D::Init(HWND mainWnd, int clientWidth, int clientHeight, const std::
 	if (FAILED(md3dDevice->CreateRasterizerState(&NoBackDesc, &mNoBackRS)))
 		return 0;
 
+	D3D11_RASTERIZER_DESC    WireframeDesc;
+	ZeroMemory(&WireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
+	WireframeDesc.CullMode = D3D11_CULL_BACK;
+	WireframeDesc.FillMode = D3D11_FILL_WIREFRAME;
+	WireframeDesc.DepthClipEnable = true;
+	if (FAILED(md3dDevice->CreateRasterizerState(&WireframeDesc, &mWireframeRS)))
+		return 0;
+
 	return true;
 }
 
@@ -295,6 +303,7 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 		mDiffuseMap->SetResource(mShaderSView);
 		md3dImmediateContext->IASetInputLayout(mPosTexLayout);
 		md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//	md3dImmediateContext->RSSetState(mWireframeRS);
 
 		stride = sizeof(Vertex::PosTex);
 		offset = 0;

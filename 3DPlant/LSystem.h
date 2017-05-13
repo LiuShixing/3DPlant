@@ -43,12 +43,18 @@ struct State
 	float    trunkScal;
 };
 
+struct LPStr
+{
+	std::string rule;
+	float      prob;
+};
+
 class LSparameter
 {
 public:
 	LSparameter();
 
-	UINT  mIterations;  
+	int  mIterations;  
 	float mStepMin;
 	float mStepMax;
 	float mStepAtt;
@@ -64,9 +70,11 @@ public:
 	int  mIsToSun;
 	float mSunFactor;
 	int  mLeafOrder;
-	std::map<char, std::vector<std::string> > mRules;
+
+	std::map<char, std::vector<LPStr> > mRules;
 
 	std::string GetRandomRule(char key);
+	bool       CheckParam();
 	float      GetRandomStep(float att=0.0f);  //att 是步长衰减量
 	float      GetRandomAngle();
 };

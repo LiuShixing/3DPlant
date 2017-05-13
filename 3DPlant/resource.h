@@ -111,6 +111,11 @@
 #define IDC_RADIO1                      1028
 #define IDC_RADIO2                      1029
 #define IDC_RADIO3                      1030
+#define IDC_EDIT17                      1031
+#define IDC_EDIT18                      1032
+#define IDC_EDIT19                      1033
+#define IDC_EDIT20                      1034
+#define IDC_EDIT21                      1035
 #define ID_32771                        32771
 #define ID_SETTING                      32772
 
@@ -120,7 +125,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        310
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_CONTROL_VALUE         1032
 #define _APS_NEXT_SYMED_VALUE           311
 #endif
 #endif

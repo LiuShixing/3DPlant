@@ -15,16 +15,24 @@ LSparameter::LSparameter() :mIsTrunk(1)
 	mTrunkSizeAtt = 1.0f;
 	mRadiusRate = 0.6f;
 	mSunFactor = 0.6f;
-	//默认规则
-	std::vector<std::string> vs;
-	std::string defaultRule("F[z+x-X][z-x-X][x+X]");
-//	std::string defaultRule("Fz-[[X]z+X]z+F[z+FX]z-X");
 
-	vs.push_back(defaultRule);
-	vs.push_back("F[z+x-X][z-x-X]");
-	vs.push_back("F[z+x-X][x+X]");
-	vs.push_back("F[z-x-X][x+X]");
-	vs.push_back("F[z+x-X]");
+	//默认规则
+	std::vector<LPStr> vs;
+
+	LPStr R;
+	R.rule = "F[z+x-X][z-x-X][x+X]";
+	R.prob = 1.0f;
+
+	vs.push_back(R);
+	R.rule = "F[z+x-X][z-x-X]";
+	vs.push_back(R);
+	R.rule = "F[z+x-X][x+X]";
+	vs.push_back(R);
+	R.rule = "F[z-x-X][x+X]";
+	vs.push_back(R);
+	R.rule = "F[z+x-X]";
+	vs.push_back(R);
+	
 	mRules['X'] = vs;
 	mStart = 'X';
 
@@ -37,12 +45,27 @@ LSparameter::LSparameter() :mIsTrunk(1)
 
 std::string LSparameter::GetRandomRule(char key)
 {
-	std::map<char, std::vector<std::string> >::iterator it = mRules.find(key);
+	std::map<char, std::vector<LPStr> >::iterator it = mRules.find(key);
 	if (it != mRules.end())
 	{
-		int length = (it->second).size();
-		int index = rand() % length;
-		return (it->second)[index];
+		float total = 0.0f;
+		for (int i = 0; i < (it->second).size(); i++)
+			total += (it->second)[i].prob;
+
+		float x = (float)rand() / (float)(RAND_MAX + 1);
+		float stopV = x*total-0.1f;
+		float f = 0.0f;
+		int index = 0;
+		for (int i = 0; i < (it->second).size(); i++)
+		{
+			f += (it->second)[i].prob;
+			if (f>stopV)
+			{
+				index = i;
+				break;
+			}
+		}
+		return (it->second)[index].rule;
 	}
 	std::string s("");
 	s += key;
@@ -62,6 +85,32 @@ float LSparameter::GetRandomAngle()
 {
 	float x = (float)rand() / (float)(RAND_MAX + 1);
 	return (mRotAngleMin + (mRotAngleMax - mRotAngleMin) * x)*XM_PI / 180.0f;
+}
+bool LSparameter::CheckParam()
+{
+/*
+	UINT  mIterations;
+	float mStepMin;
+	float mStepMax;
+	float mStepAtt;
+	float mRotAngleMin;
+	float mRotAngleMax;
+	float mTrunkSize;
+	float mTrunkSizeAtt;
+	float mRadiusRate;
+	float mLeaveSize;
+	char  mStart;
+	int mIsTrunk;
+	int mIsLeave;
+	int  mIsToSun;
+	float mSunFactor;
+	int  mLeafOrder;
+	*/
+	if (mIterations <= 0 || mStepMin <= 0.0f || mStepMax <= 0.0f || mTrunkSize<=0.0f
+		|| mLeaveSize<=0.0f)
+		return false;
+	
+	return true;
 }
 
 LSystem::LSystem() 

@@ -141,7 +141,6 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 		gD3d.Init(m_hWnd, clientR.right - clientR.left, clientR.bottom - clientR.top, L"HLSL/pos_color.hlsl");
 		
 		//生成默认植物
-		std::cout << gSettingDia.mLSparamiter.mRules['X'][0] << std::endl;
 	//	std::vector<Vertex::PosColor> vertexs;
 	//	std::vector<UINT> indices; 
 		gLS.CreatePlant(gLS.mVertexs, gLS.mIndices, gSettingDia.mLSparamiter);

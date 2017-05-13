@@ -31,15 +31,17 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 
 	std::vector<std::string> rules(6, "");
+	float probs[6] = {0,0,0,0,0,0};
 	int index = 0;
-	for (std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
+	for (std::map<char, std::vector<LPStr> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
 	{
 		char k = it->first;
 		for (int i = 0; i < it->second.size(); i++)
 		{
 			rules[index] = k;
 			rules[index] += "=";
-			rules[index] += (it->second)[i];
+			rules[index] += (it->second)[i].rule;
+			probs[index] = (it->second)[i].prob;
 			index++;
 		}
 	}
@@ -73,6 +75,17 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_EDIT16, mLeafSizeEdit);
 	DDX_Text(pDX, IDC_EDIT16, mLSparamiter.mLeaveSize);
+
+	DDX_Control(pDX, IDC_EDIT17, mProb1Edit);
+	DDX_Text(pDX, IDC_EDIT17, probs[0]);
+	DDX_Control(pDX, IDC_EDIT18, mProb2Edit);
+	DDX_Text(pDX, IDC_EDIT18, probs[1]);
+	DDX_Control(pDX, IDC_EDIT19, mProb3Edit);
+	DDX_Text(pDX, IDC_EDIT19, probs[2]);
+	DDX_Control(pDX, IDC_EDIT20, mProb4Edit);
+	DDX_Text(pDX, IDC_EDIT20, probs[3]);
+	DDX_Control(pDX, IDC_EDIT21, mProb5Edit);
+	DDX_Text(pDX, IDC_EDIT21, probs[4]);
 
 	CString Start(mLSparamiter.mStart);
 	DDX_Control(pDX, IDC_EDIT11, mStartEdit);
@@ -124,7 +137,11 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	mIsToSunCheck.SetCheck(mLSparamiter.mIsToSun);
 
 	mLeafOrder = mLSparamiter.mLeafOrder;
-	if(mLeafOrder==0)
+
+	((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(FALSE);//没选上
+	((CButton *)GetDlgItem(IDC_RADIO2))->SetCheck(FALSE);//没选上
+	((CButton *)GetDlgItem(IDC_RADIO3))->SetCheck(FALSE);//没选上
+	if (mLeafOrder == 0)
 	{
 		((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(TRUE);//选上
 	}
@@ -132,10 +149,11 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	{
 		((CButton *)GetDlgItem(IDC_RADIO2))->SetCheck(TRUE);//选上
 	}
-	else if(mLeafOrder == 2)
+	else if (mLeafOrder == 2)
 	{
 		((CButton *)GetDlgItem(IDC_RADIO3))->SetCheck(TRUE);//选上
 	}
+	
 }
 
 
@@ -151,7 +169,7 @@ BEGIN_MESSAGE_MAP(SettingDialog, CDialog)
 END_MESSAGE_MAP()
 
 
-void SettingDialog::AddRules(CString& text)
+void SettingDialog::AddRules(CString& text,float prob)
 {
 	text.Remove(' ');
 	std::wstring ws(text.GetBuffer(text.GetLength()));
@@ -161,16 +179,19 @@ void SettingDialog::AddRules(CString& text)
 	if (s.length() >= 2 && s[1] == '=')
 	{
 		char k = s[0];
+		LPStr R;
 		std::string v(s.begin() + 2, s.end());
-		std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.find(k);
+		R.rule = v;
+		R.prob = prob;
+		std::map<char, std::vector<LPStr> >::iterator it = mLSparamiter.mRules.find(k);
 		if (it != mLSparamiter.mRules.end())
 		{
-			(it->second).push_back(v);
+			(it->second).push_back(R);
 		}
 		else
 		{
-			std::vector<std::string> vs;
-			vs.push_back(v);
+			std::vector<LPStr> vs;
+			vs.push_back(R);
 			mLSparamiter.mRules.insert(std::make_pair(k, vs));
 		}
 	}
@@ -212,6 +233,17 @@ void SettingDialog::OnBnClickedOk()
 	mLeafSizeEdit.GetWindowText(text);
 	mLSparamiter.mLeaveSize = _ttof(text);
 
+	mProb1Edit.GetWindowText(text);
+	float prob1 = _ttof(text);
+	mProb2Edit.GetWindowText(text);
+	float prob2 = _ttof(text);
+	mProb3Edit.GetWindowText(text);
+	float prob3 = _ttof(text);
+	mProb4Edit.GetWindowText(text);
+	float prob4 = _ttof(text);
+	mProb5Edit.GetWindowText(text);
+	float prob5 = _ttof(text);
+
 	mLSparamiter.mIsToSun = mIsToSunCheck.GetCheck();
 
 	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
@@ -225,20 +257,27 @@ void SettingDialog::OnBnClickedOk()
 
 	mLSparamiter.mRules.clear();
 	mRule1Edit.GetWindowText(text);
-	AddRules(text);
+	AddRules(text, prob1);
 	mRule2Edit.GetWindowText(text);
-	AddRules(text);
+	AddRules(text, prob2);
 	mRule3Edit.GetWindowText(text);
-	AddRules(text);
+	AddRules(text, prob3);
 	mRule4Edit.GetWindowText(text);
-	AddRules(text);
+	AddRules(text, prob4);
 	mRule5Edit.GetWindowText(text);
-	AddRules(text);
+	AddRules(text, prob5);
 
 	//--
 	if (mLSparamiter.mStart != ' ' && mLSparamiter.mRules.size() > 0)
 	{
-		mpSettingOkClick();
+		if (mLSparamiter.CheckParam())
+		{
+			mpSettingOkClick();
+		}
+		else
+		{
+			MessageBox(0, L" 参数不合法！", 0);
+		}
 	}
 	else
 	{
@@ -286,7 +325,8 @@ void SettingDialog::OnBnClickedOpen()
 			>> ignore >> mLSparamiter.mIsTrunk
 			>> ignore >> mLSparamiter.mIsLeave
 			>> ignore >> mLSparamiter.mIsToSun
-			>> ignore >> mLSparamiter.mSunFactor;
+			>> ignore >> mLSparamiter.mSunFactor
+			>> ignore >> mLSparamiter.mLeafOrder;
 
 		int rulesCount;
 		is >> ignore >> rulesCount;
@@ -297,11 +337,12 @@ void SettingDialog::OnBnClickedOpen()
 			is >> ignore >> k;
 			int count;
 			is >> count;
-			std::vector<std::string> vs;
+			std::vector<LPStr> vs;
 			for (int j = 0; j < count; j++)
 			{
-				std::string s;
-				is >> s;
+				LPStr s;
+				is >> s.rule;
+				is >> s.prob;
 				vs.push_back(s);
 			}
 			mLSparamiter.mRules.insert(std::make_pair(k, vs));
@@ -405,18 +446,22 @@ void SettingDialog::OnBnClickedSave()
 			<< "IsTrunk: " << mLSparamiter.mIsTrunk << endl
 			<< "IsLeave: " << mLSparamiter.mIsLeave << endl
 			<< "IsToSun: " << mLSparamiter.mIsToSun << endl
-			<< "SunFactor: " << mLSparamiter.mSunFactor << endl;
+			<< "SunFactor: " << mLSparamiter.mSunFactor << endl
+			<< "LeafOrder: " << mLSparamiter.mLeafOrder << endl;
 		os << endl;
 		os << "RulesCount: "<<mLSparamiter.mRules.size() << endl;
-		for (std::map<char, std::vector<std::string> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
+		for (std::map<char, std::vector<LPStr> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
 		{
 			char k = it->first;
-			vector<string> vs = it->second;
+			vector<LPStr> vs = it->second;
 
 			os << "key: " << k << endl;
 			os << vs.size() << endl;
 			for (int i = 0; i < vs.size(); i++)
-				os << vs[i] << endl;
+			{
+				os << vs[i].rule << endl;
+				os << vs[i].prob << endl;
+			}
 			os << endl;
 		}
 
