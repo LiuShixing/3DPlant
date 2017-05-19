@@ -39,8 +39,8 @@ Direct3D::~Direct3D()
 	ReleaseCOM(mRenderTargetView);
 	ReleaseCOM(mDepthStencilView);
 	ReleaseCOM(mpEffect);
-	ReleaseCOM(mpVB);
-	ReleaseCOM(mpIB); 
+	ReleaseCOM(mpLinesVB);
+	ReleaseCOM(mpLinesIB);
 	ReleaseCOM(mPosColorLayout);
 	ReleasePointer(mWorldViewProj); 
 	ReleasePointer(mTech);
@@ -242,7 +242,7 @@ void Direct3D::OnResize(int clientWidth, int clientHeight)
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*XM_PI, aspectRatio, 1.0f, 1000.0f);
 	XMStoreFloat4x4(&mProj, P);
 }
-void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int isDrawTrunk,int isDrawLeave)
+void Direct3D::Draw(PlantData& plantData, bool isTrunk, bool isleaf)
 {
 	//--------------------------------update--------------------------
 	float x = mRadius*sinf(mPhi)*cosf(mTheta);
@@ -278,15 +278,15 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 	UINT stride;
 	UINT offset;
 	D3DX11_TECHNIQUE_DESC techDesc;
-	if (isDrawTrunk == 0 )
+	if (isTrunk == false )
 	{
 		md3dImmediateContext->IASetInputLayout(mPosColorLayout);
 		md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
 		stride = sizeof(Vertex::PosColor);
 		offset = 0;
-		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpVB, &stride, &offset);
-		this->md3dImmediateContext->IASetIndexBuffer(mpIB, DXGI_FORMAT_R32_UINT, 0);
+		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLinesVB, &stride, &offset);
+		this->md3dImmediateContext->IASetIndexBuffer(mpLinesIB, DXGI_FORMAT_R32_UINT, 0);
 
 		mTech->GetDesc(&techDesc);
 		for (UINT p = 0; p < techDesc.Passes; ++p)
@@ -297,7 +297,7 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 	}
 	// draw trunk---------------------------------------------------------------------------------------
 
-	if (isDrawTrunk==1)
+	if (isTrunk==true)
 	{
 		//update trunk
 		mDiffuseMap->SetResource(mShaderSView);
@@ -309,11 +309,11 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 		offset = 0;
 		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpTrunkVB, &stride, &offset);
 		this->md3dImmediateContext->IASetIndexBuffer(mpTrunkIB, DXGI_FORMAT_R32_UINT, 0);
-		for (int i = 0; i < trunks.size(); i++)
+		for (int i = 0; i < plantData.mTrunks.size(); i++)
 		{
-			XMMATRIX sizeScal = XMMatrixScaling(trunks[i].sizeScal, trunks[i].scalY, trunks[i].sizeScal);
-			world = XMMatrixTranslation(trunks[i].pos.x, trunks[i].pos.y, trunks[i].pos.z);
-			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&trunks[i].rotAxis), trunks[i].angle);
+			XMMATRIX sizeScal = XMMatrixScaling(plantData.mTrunks[i].sizeScal, plantData.mTrunks[i].scalY, plantData.mTrunks[i].sizeScal);
+			world = XMMatrixTranslation(plantData.mTrunks[i].pos.x, plantData.mTrunks[i].pos.y, plantData.mTrunks[i].pos.z);
+			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&plantData.mTrunks[i].rotAxis), plantData.mTrunks[i].angle);
 			worldViewProj = sizeScal*rot*world*View*Proj;
 			mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 
@@ -327,7 +327,7 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 		}
 	}
 	//draw leaves
-	if (isDrawLeave==1)
+	if (isleaf==1)
 	{
 		mDiffuseMap->SetResource(mLeaveShaderSView);
 		md3dImmediateContext->IASetInputLayout(mPosTexLayout);
@@ -336,15 +336,15 @@ void Direct3D::Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves,int i
 
 		stride = sizeof(Vertex::PosTex);
 		offset = 0;
-		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLeaveVB, &stride, &offset);
-		this->md3dImmediateContext->IASetIndexBuffer(mpLeaveIB, DXGI_FORMAT_R32_UINT, 0);
+		this->md3dImmediateContext->IASetVertexBuffers(0, 1, &mpLeafVB, &stride, &offset);
+		this->md3dImmediateContext->IASetIndexBuffer(mpLeafIB, DXGI_FORMAT_R32_UINT, 0);
 
-		for (int i = 0; i < leaves.size(); i++)
+		for (int i = 0; i < plantData.mLeaves.size(); i++)
 		{
-			XMMATRIX RotYM = XMMatrixRotationY(leaves[i].rotY);
-			XMMATRIX sizeScal = XMMatrixScaling(leaves[i].scal, leaves[i].scal, leaves[i].scal);
-			world = XMMatrixTranslation(leaves[i].pos.x, leaves[i].pos.y, leaves[i].pos.z);
-			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&leaves[i].rotAxis), leaves[i].angle);
+			XMMATRIX RotYM = XMMatrixRotationY(plantData.mLeaves[i].rotY);
+			XMMATRIX sizeScal = XMMatrixScaling(plantData.mLeaves[i].scal, plantData.mLeaves[i].scal, plantData.mLeaves[i].scal);
+			world = XMMatrixTranslation(plantData.mLeaves[i].pos.x, plantData.mLeaves[i].pos.y, plantData.mLeaves[i].pos.z);
+			XMMATRIX rot = XMMatrixRotationAxis(XMLoadFloat3(&plantData.mLeaves[i].rotAxis), plantData.mLeaves[i].angle);
 			worldViewProj = sizeScal*RotYM*rot*world*View*Proj;
 			mPosTexWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 
@@ -469,7 +469,7 @@ bool Direct3D::InitLayout()
 	return true;
 }
 
-bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices)
+bool Direct3D::CreateLinesVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices)
 {
 	D3D11_BUFFER_DESC vDesc = { 0 };
 	vDesc.ByteWidth = vertexs.size() * sizeof(Vertex::PosColor);
@@ -480,7 +480,7 @@ bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vecto
 	D3D11_SUBRESOURCE_DATA vbdata = { 0 };
 	vbdata.pSysMem = &vertexs[0];
 	
-	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpVB)))
+	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpLinesVB)))
 		return 0;
 	
 	//index
@@ -492,7 +492,7 @@ bool Direct3D::CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vecto
 	
 	D3D11_SUBRESOURCE_DATA ibdata = { 0 };
 	ibdata.pSysMem = &indices[0];
-	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpIB)))
+	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpLinesIB)))
 		return 0;
 	
 	return 1;
@@ -526,7 +526,7 @@ bool Direct3D::CreateTrunkVIBuffer(std::vector<Vertex::PosTex>& vertexs, std::ve
 
 	return 1;
 }
-bool Direct3D::CreateLeaveVIBuffer()
+bool Direct3D::CreateLeafVIBuffer()
 {
 	std::vector<Vertex::PosTex> vertexs(4);
 	vertexs[0].pos = XMFLOAT3(-1.0f,0.0f,0.0f);
@@ -547,7 +547,7 @@ bool Direct3D::CreateLeaveVIBuffer()
 	D3D11_SUBRESOURCE_DATA vbdata = { 0 };
 	vbdata.pSysMem = &vertexs[0];
 
-	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpLeaveVB)))
+	if (FAILED(md3dDevice->CreateBuffer(&vDesc, &vbdata, &mpLeafVB)))
 		return 0;
 
 	//index
@@ -563,15 +563,15 @@ bool Direct3D::CreateLeaveVIBuffer()
 
 	D3D11_SUBRESOURCE_DATA ibdata = { 0 };
 	ibdata.pSysMem = indices;
-	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpLeaveIB)))
+	if (FAILED(md3dDevice->CreateBuffer(&iDesc, &ibdata, &mpLeafIB)))
 		return 0;
 
 	return 1;
 }
 void Direct3D::ReleaseVIBuffer()
 {
-	ReleaseCOM(mpVB);
-	ReleaseCOM(mpIB);
+	ReleaseCOM(mpLinesVB);
+	ReleaseCOM(mpLinesIB);
 	ReleaseCOM(mpTrunkVB);
 	ReleaseCOM(mpTrunkIB);
 }

@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CMy3DPlantView, CView)
 	ON_WM_KEYUP()
 	ON_COMMAND(ID_SETTING, &CMy3DPlantView::OnSetting)
 	ON_MESSAGE(WM_SETTING_OK, &CMy3DPlantView::OnSettingOk)
+	ON_COMMAND(ID_32773, &CMy3DPlantView::On32773)
 END_MESSAGE_MAP()
 
 // CMy3DPlantView 构造/析构
@@ -75,43 +76,44 @@ BOOL CMy3DPlantView::PreCreateWindow(CREATESTRUCT& cs)
 LSystem  gLS;
 Direct3D gD3d;
 SettingDialog gSettingDia;
+PlantData    gPlantData;
 void UpdatePlant()
 {
 	std::cout << "UpdatePlant" << std::endl;
 //	std::vector<Vertex::PosColor> vertexs;
 //	std::vector<UINT> indices;
 
-	gLS.CreatePlant(gLS.mVertexs, gLS.mIndices, gSettingDia.mLSparamiter);
+	gLS.CreatePlant(gPlantData);
 	gD3d.ReleaseVIBuffer();
-	gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
+	gD3d.CreateLinesVIBuffer(gPlantData.mVertexs, gPlantData.mIndices);
 //
 	std::vector<Vertex::PosTex> vertexs2;
 	std::vector<UINT> indices2;
-	float buttomR = gSettingDia.mLSparamiter.mTrunkSize;
-	float topR = gSettingDia.mLSparamiter.mTrunkSize * gSettingDia.mLSparamiter.mRadiusRate;
-	float height = gSettingDia.mLSparamiter.mStepMax;
+	float buttomR = gLS.mParam.mTrunkSize;
+	float topR = gLS.mParam.mTrunkSize * gLS.mParam.mRadiusRate;
+	float height = gLS.mParam.mStepMax;
 	gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2);
 	gD3d.CreateTrunkVIBuffer(vertexs2, indices2);
-	gD3d.CreateShaderRV(L"res/trunk.dds",L"res/leave.png");
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gD3d.CreateShaderRV(L"res/trunk.dds",L"res/leave.dds");
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 }
 
 void DrawSavedPlant()
 {
 	gD3d.ReleaseVIBuffer();
-	gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
+	gD3d.CreateLinesVIBuffer(gPlantData.mVertexs, gPlantData.mIndices);
 
 	//
 	std::vector<Vertex::PosTex> vertexs2;
 	std::vector<UINT> indices2;
-	float buttomR = gSettingDia.mLSparamiter.mTrunkSize;
-	float topR = gSettingDia.mLSparamiter.mTrunkSize * gSettingDia.mLSparamiter.mRadiusRate;
-	float height = gSettingDia.mLSparamiter.mStepMax;
+	float buttomR = gLS.mParam.mTrunkSize;
+	float topR = gLS.mParam.mTrunkSize *  gLS.mParam.mRadiusRate;
+	float height = gLS.mParam.mStepMax;
 	gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2);
 	gD3d.CreateTrunkVIBuffer(vertexs2, indices2);
-	gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.png");
+	gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.dds");
 
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 }
 
 // CMy3DPlantView 绘制
@@ -143,22 +145,22 @@ void CMy3DPlantView::OnDraw(CDC* /*pDC*/)
 		//生成默认植物
 	//	std::vector<Vertex::PosColor> vertexs;
 	//	std::vector<UINT> indices; 
-		gLS.CreatePlant(gLS.mVertexs, gLS.mIndices, gSettingDia.mLSparamiter);
-		gD3d.CreateVIBuffer(gLS.mVertexs, gLS.mIndices);
+		gLS.CreatePlant(gPlantData);
+		gD3d.CreateLinesVIBuffer(gPlantData.mVertexs, gPlantData.mIndices);
 
 		std::cout << "0" << std::endl;
 		std::vector<Vertex::PosTex> vertexs2;
 		std::vector<UINT> indices2;
-		float buttomR = gSettingDia.mLSparamiter.mTrunkSize;
-		float topR = gSettingDia.mLSparamiter.mTrunkSize * gSettingDia.mLSparamiter.mRadiusRate;
-		float height = gSettingDia.mLSparamiter.mStepMax; 
+		float buttomR = gLS.mParam.mTrunkSize;
+		float topR = gLS.mParam.mTrunkSize * gLS.mParam.mRadiusRate;
+		float height = gLS.mParam.mStepMax;
 		gD3d.CreateCylinder(buttomR, topR, height, 16, 20, vertexs2, indices2); 
 		gD3d.CreateTrunkVIBuffer(vertexs2, indices2); 
-		gD3d.CreateLeaveVIBuffer();
-		gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.png");
+		gD3d.CreateLeafVIBuffer();
+		gD3d.CreateShaderRV(L"res/trunk.dds", L"res/leave.dds");
 	}
 	//绘制
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 }
 
 
@@ -281,7 +283,7 @@ void CMy3DPlantView::OnMouseMove(UINT nFlags, CPoint point)
 	gD3d.mLastMousePos.x = point.x;
 	gD3d.mLastMousePos.y = point.y;
 
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 
 	CView::OnMouseMove(nFlags, point);
 }
@@ -312,7 +314,7 @@ BOOL CMy3DPlantView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	// TODO:  在此添加消息处理程序代码和/或调用默认值
 	
 	gD3d.mRadius += zDelta*0.005f;
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 	return CView::OnMouseWheel(nFlags, zDelta, pt);
 }
 
@@ -341,4 +343,10 @@ afx_msg LRESULT CMy3DPlantView::OnSettingOk(WPARAM wParam, LPARAM lParam)
 {
 	std::cout << "on setting click ok4" << std::endl;
 	return 0;
+}
+
+CHelpDial gCHelpDial;
+void CMy3DPlantView::On32773()
+{
+	gCHelpDial.DoModal();
 }

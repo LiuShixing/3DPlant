@@ -1,7 +1,8 @@
-﻿生成启动时间为 2017/5/13 15:53:13。
+﻿生成启动时间为 2017/5/19 19:45:25。
      1>项目“D:\毕业设计\代码\3DPlant\3DPlant\3DPlant.vcxproj”在节点 2 上(Build 个目标)。
-     1>ResourceCompile:
-         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\rc.exe /D _DEBUG /D _UNICODE /D UNICODE /D _AFXDLL /l"0x0804" /IDebug\ /nologo /fo"Debug\3DPlant.res" 3DPlant.rc 
+     1>ClCompile:
+         D:\VS2013\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _UNICODE /D UNICODE /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\3DPlant.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt HelpDial.cpp
+         HelpDial.cpp
        Link:
          D:\VS2013\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\毕业设计\代码\3DPlant\Debug\3DPlant.exe" /INCREMENTAL /NOLOGO /LIBPATH:"D:\Autodesk FBX SDK\2016.1.2\lib\vs2013\x86\debug" d3d11.lib d3dx11d.lib D3DCompiler.lib D3DX11EffectsD.lib dxerr.lib dxgi.lib dxguid.lib wininet.lib libfbxsdk.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:D:\VS2013\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"D:\毕业设计\代码\3DPlant\Debug\3DPlant.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /ENTRY:"wWinMainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\毕业设计\代码\3DPlant\Debug\3DPlant.lib" /MACHINE:X86 Debug\3DPlant.res
          Debug\3DPlant.obj
@@ -10,6 +11,7 @@
          Debug\ClassView.obj
          Debug\Direct3D.obj
          Debug\FileView.obj
+         Debug\HelpDial.obj
          Debug\LSystem.obj
          Debug\MainFrm.obj
          Debug\OutputWnd.obj
@@ -22,4 +24,4 @@
 
 生成成功。
 
-已用时间 00:00:04.87
+已用时间 00:00:01.70

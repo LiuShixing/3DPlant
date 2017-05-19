@@ -17,20 +17,20 @@ LSparameter::LSparameter() :mIsTrunk(1)
 	mSunFactor = 0.6f;
 
 	//默认规则
-	std::vector<LPStr> vs;
+	std::vector<RuleRight> vs;
 
-	LPStr R;
-	R.rule = "F[z+x-X][z-x-X][x+X]";
-	R.prob = 1.0f;
+	RuleRight R;
+	R.production = "F[z+x-X][z-x-X][x+X]";
+	R.probability = 1.0f;
 
 	vs.push_back(R);
-	R.rule = "F[z+x-X][z-x-X]";
+	R.production = "F[z+x-X][z-x-X]";
 	vs.push_back(R);
-	R.rule = "F[z+x-X][x+X]";
+	R.production = "F[z+x-X][x+X]";
 	vs.push_back(R);
-	R.rule = "F[z-x-X][x+X]";
+	R.production = "F[z-x-X][x+X]";
 	vs.push_back(R);
-	R.rule = "F[z+x-X]";
+	R.production = "F[z+x-X]";
 	vs.push_back(R);
 	
 	mRules['X'] = vs;
@@ -45,28 +45,38 @@ LSparameter::LSparameter() :mIsTrunk(1)
 
 std::string LSparameter::GetRandomRule(char key)
 {
-	std::map<char, std::vector<LPStr> >::iterator it = mRules.find(key);
+	//查找以key为左部的规则集合
+	std::map<char, std::vector<RuleRight> >::iterator it = mRules.find(key);
 	if (it != mRules.end())
-	{
+	{//找到规则
+
+		//使用轮盘赌算法，从规则集合选择一个规则
+
+		//计算概率比值的总和
 		float total = 0.0f;
 		for (int i = 0; i < (it->second).size(); i++)
-			total += (it->second)[i].prob;
+			total += (it->second)[i].probability;
 
+		//随机选择停止值
 		float x = (float)rand() / (float)(RAND_MAX + 1);
-		float stopV = x*total-0.1f;
+		float stop = x*total-0.1f;
+
+		//“旋转轮盘”，累加概率直到大于停止值
 		float f = 0.0f;
 		int index = 0;
 		for (int i = 0; i < (it->second).size(); i++)
 		{
-			f += (it->second)[i].prob;
-			if (f>stopV)
+			f += (it->second)[i].probability;
+			if (f>stop)
 			{
 				index = i;
 				break;
 			}
 		}
-		return (it->second)[index].rule;
+		//返回选中规则的右部字符串
+		return (it->second)[index].production;
 	}
+	//没找到规则，返回key本身
 	std::string s("");
 	s += key;
 	return s;
@@ -75,9 +85,6 @@ std::string LSparameter::GetRandomRule(char key)
 float LSparameter::GetRandomStep(float att)
 {
 	float x = (float)rand() / (float)(RAND_MAX + 1);
-//	float tmin = mStepMin - att > 0.0f ? mStepMin - att : 0.5f;
-//	float tmax = mStepMax - att > 0.0f ? mStepMax - att : 0.5f;
-//	return tmin + (tmax - tmin) * x;
 	return (mStepMin + (mStepMax - mStepMin) * x)*att;
 }
 
@@ -121,27 +128,172 @@ LSystem::LSystem()
 LSystem::~LSystem()
 {
 }
-
-void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param)
+std::string LSystem::GenerateLstring()
 {
-	vertexs.clear();
-	indices.clear();
-	mTrunks.clear();
-	mLeaves.clear();
-
-	//生成最终字符串
-	std::string plantStr = param.GetRandomRule(param.mStart);
-
-	UINT iterations = param.mIterations;
+	std::string Lstring = mParam.GetRandomRule(mParam.mStart);
+	UINT iterations = mParam.mIterations;
 	while (--iterations)
 	{
 		std::string tmpstr = "";
-		for (int i = 0; i < plantStr.size(); i++)
+		for (int i = 0; i < Lstring.size(); i++)
 		{
-			tmpstr += param.GetRandomRule(plantStr[i]);
+			tmpstr += mParam.GetRandomRule(Lstring[i]);
 		}
-		plantStr = tmpstr;
+		Lstring = tmpstr;
 	}
+	return Lstring;
+}
+
+void LSystem::GenerateTrunk(std::vector<Trunk>& trunks, const State& curState,float step)
+{
+	Trunk trunk;
+	trunk.pos = curState.pos;
+
+	//计算树干的最终旋转轴，旋转角度
+	XMVECTOR Y = XMVector3Normalize(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));//树干起始方向向量
+	XMVECTOR DOT = XMVector3Dot(XMVector3Normalize(XMLoadFloat3(&curState.v)), Y);
+	XMFLOAT3 DotTmp;
+	XMStoreFloat3(&DotTmp, DOT);
+	float dot = DotTmp.x;
+	if (fabs(dot - 1.0f) < 0.000001f)
+	{//最终方向和起始方向相同
+		trunk.rotAxis = XMFLOAT3(0.0f, 0.1f, 0.0f);
+		trunk.angle = 0.0f;
+	}
+	else
+	{
+		trunk.angle = acosf(dot);
+		XMVECTOR DIR = XMVector3Normalize(XMVector3Cross(Y, XMVector3Normalize(XMLoadFloat3(&curState.v))));
+		XMStoreFloat3(&trunk.rotAxis, DIR);
+	}
+
+	//树干整体缩放和长度缩放
+	trunk.sizeScal = curState.trunkScal;
+	trunk.scalY = step / mParam.mStepMax;
+	trunks.push_back(trunk);
+}
+void LSystem::GenerateLeaf(std::vector<Leaf>& leaves, const State& curState, const State& newState, float step, Trunk& trunk, int i)
+{
+	XMVECTOR LP, NP, CP, CV;
+	CP = XMLoadFloat3(&curState.pos);
+	CV = XMLoadFloat3(&curState.v);
+	NP = XMLoadFloat3(&newState.pos);
+
+	XMFLOAT3 TMP;
+	XMStoreFloat3(&TMP, XMVector3Length(NP - CP));
+
+	float dt = 0.5f;
+	int count = TMP.x / dt;
+
+	if (mParam.mLeafOrder == 0)
+	{
+		//互生叶序
+		Leaf leaf;
+		leaf.rotAxis = trunk.rotAxis;
+		leaf.angle = trunk.angle;
+		leaf.scal = mParam.mLeaveSize;
+
+		float rotY[2][2] = { { 0.0f, XM_PI }, { XM_PI / 2.0f, XM_PI*1.5f } };
+		int j;
+		for (j = 0; j < count; j++)
+		{
+			LP = CP + CV*dt*j;
+			XMStoreFloat3(&leaf.pos, LP);
+			leaf.rotY = rotY[i % 2][j % 2];
+			leaves.push_back(leaf);
+		}
+		//枝端的叶子
+		leaf.pos = newState.pos;
+		leaf.rotY = rotY[i % 2][j % 2];
+		leaves.push_back(leaf);
+	}
+	else if (mParam.mLeafOrder == 1)
+	{
+		//对生叶序
+		Leaf leaf;
+		leaf.rotAxis = trunk.rotAxis;
+		leaf.angle = trunk.angle;
+		leaf.scal = mParam.mLeaveSize;
+		float rotY[2][2] = { { 0.0f, XM_PI }, { XM_PI / 2.0f, XM_PI*1.5f } };
+		int j;
+		for (j = 0; j < count; j++)
+		{
+			LP = CP + CV*dt*j;
+			XMStoreFloat3(&leaf.pos, LP);
+			leaf.rotY = rotY[i % 2][j % 2];
+			leaves.push_back(leaf);
+
+			//相对那片
+			leaf.rotY = rotY[i % 2][(j + 1) % 2];
+			leaves.push_back(leaf);
+		}
+		leaf.pos = newState.pos;
+		leaf.rotY = rotY[i % 2][j % 2];
+		leaves.push_back(leaf);
+		leaf.rotY = rotY[i % 2][(j + 1) % 2];
+		leaves.push_back(leaf);
+	}
+	else if (mParam.mLeafOrder == 2)
+	{
+		//轮生叶序
+		dt = 0.5f;
+		count = TMP.x / dt;
+		Leaf leaf;
+		leaf.rotAxis = trunk.rotAxis;
+		leaf.angle = trunk.angle;
+		leaf.scal = mParam.mLeaveSize;
+		float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI, XM_PI*1.5f };
+		int j;
+		for (j = 0; j < count; j++)
+		{
+			LP = CP + CV*dt*j;
+			XMStoreFloat3(&leaf.pos, LP);
+			for (int k = 0; k < 4; k++)
+			{
+				leaf.rotY = rotY[k % 4];
+				leaves.push_back(leaf);
+			}
+		}
+		leaf.pos = newState.pos;
+		for (int k = 0; k < 4; k++)
+		{
+			leaf.rotY = rotY[k % 4];
+			leaves.push_back(leaf);
+		}
+
+	}
+}
+void LSystem::RoteDirection(char axis, char sign, XMFLOAT3& direction)
+{
+	float tmpa = mParam.GetRandomAngle();
+	float angle = sign == '+' ? tmpa : -tmpa;
+
+	XMVECTOR OldV = XMLoadFloat3(&direction);
+	XMVECTOR NewV;
+	switch (axis)
+	{
+	case 'x':NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationX(angle)));
+		break;
+	case 'y':NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationY(angle)));
+		break;
+	case 'z':NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationZ(angle)));
+		break;
+	}
+
+	if (mParam.mIsToSun)
+		ToSun(NewV, mParam.mSunFactor);
+
+	XMStoreFloat3(&direction, NewV);
+}
+void LSystem::CreatePlant(PlantData& plantData)
+{
+	plantData.mVertexs.clear();
+	plantData.mIndices.clear();
+	plantData.mTrunks.clear();
+	plantData.mLeaves.clear();
+
+	//生成最终字符串
+	std::string Lstring = GenerateLstring();
 
 	//设置初始状态
 	State orinState;
@@ -154,26 +306,22 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 	Vertex::PosColor orinVer;
 	orinVer.pos = orinState.pos;
 	orinVer.color = reinterpret_cast<const float*>(&Colors::Green);
-	vertexs.push_back(orinVer);
+	plantData.mVertexs.push_back(orinVer);
 
 	//步长衰减
 	float totalStepAtt = 1.0f;
-
-	//for trunk size
-//	float trunkScal = 1.0f;
-//	float trunkScalFact = param.mRadiusRate;
 
 	//记录深度
 	int depth = 1;
 
 	//给L字符串末尾加]
-	plantStr += "]";
+	Lstring += "]";
 	
 	State curState = orinState;
 	std::stack<State> stateStack; 
-	for (int i = 0; i < plantStr.size()-1; i++)
+	for (int i = 0; i < Lstring.size() - 1; i++)
 	{
-		switch (plantStr[i])
+		switch (Lstring[i])
 		{
 		case 'F':
 		{
@@ -182,226 +330,57 @@ void LSystem::CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UI
 					XMVECTOR OPOS = XMLoadFloat3(&curState.pos);
 					XMVECTOR V = XMVector3Normalize(XMLoadFloat3(&curState.v));
 					
-					float step = param.GetRandomStep(totalStepAtt);
+					float step = mParam.GetRandomStep(totalStepAtt);
 					XMVECTOR NPOS = OPOS + V*step;
 					XMStoreFloat3(&newState.pos, NPOS);
 
 					Vertex::PosColor newVer;
 					newVer.pos = newState.pos;
 					newVer.color = reinterpret_cast<const float*>(&Colors::Green);
-					newState.verIndiex = vertexs.size();
-					newState.trunkScal = curState.trunkScal*param.mRadiusRate;
+					newState.verIndiex = plantData.mVertexs.size();
+					newState.trunkScal = curState.trunkScal*mParam.mRadiusRate;
 
-					indices.push_back(curState.verIndiex);
-					indices.push_back(newState.verIndiex);
+					plantData.mIndices.push_back(curState.verIndiex);
+					plantData.mIndices.push_back(newState.verIndiex);
+					plantData.mVertexs.push_back(newVer);
 
 					//--trunk--每前进一步生成一个树干
-					Trunk trunk;
-					trunk.pos = curState.pos;
-
-					//计算树干的最终旋转轴，旋转角度
-					XMVECTOR Y = XMVector3Normalize(XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));//树干起始方向向量
-					XMVECTOR DOT = XMVector3Dot(V, Y);
-					XMFLOAT3 DotTmp;
-					XMStoreFloat3(&DotTmp, DOT);
-					float dot = DotTmp.x;
-					if (fabs(dot - 1.0f) < 0.000001f)
-					{//最终方向和起始方向相同
-						trunk.rotAxis = XMFLOAT3(0.0f, 0.1f, 0.0f);
-						trunk.angle = 0.0f;
-					}
-					else
-					{
-						trunk.angle = acosf(dot);
-						XMVECTOR DIR = XMVector3Normalize(XMVector3Cross(Y, V));
-						XMStoreFloat3(&trunk.rotAxis, DIR);
-					}
-					
-					//树干整体缩放和长度缩放
-					trunk.sizeScal = curState.trunkScal;
-					trunk.scalY = step / param.mStepMax;
-					mTrunks.push_back(trunk);
-				//	curState.trunkScal *= param.mRadiusRate;
+					GenerateTrunk(plantData.mTrunks, curState, step);
 
 					//生成叶子
-			//		if (depth > param.mIterations - 1 )
-					if (plantStr[i + 1] == ']' || depth > param.mIterations - 1)
+					if (Lstring[i + 1] == ']' || depth > mParam.mIterations - 1)
 					{
-						XMVECTOR LP, NP, CP, CV;
-						CP = XMLoadFloat3(&curState.pos);
-						CV = XMLoadFloat3(&curState.v);
-						NP = XMLoadFloat3(&newState.pos);
-
-						XMFLOAT3 TMP;
-						XMStoreFloat3(&TMP, XMVector3Length(NP - CP));
-
-						float dt = 0.5f;
-						int count = TMP.x / dt;
-
-						if (param.mLeafOrder == 0)
-						{
-							//互生叶序
-							Leave leave;
-							leave.rotAxis = trunk.rotAxis;
-							leave.angle = trunk.angle;
-							leave.scal = param.mLeaveSize;
-
-							float rotY[2][2] = { { 0.0f, XM_PI },{ XM_PI / 2.0f, XM_PI*1.5f } };
-							int j;
-							for (j = 0; j < count; j++)
-							{
-								LP = CP + CV*dt*j;
-								XMStoreFloat3(&leave.pos, LP);
-								leave.rotY = rotY[i%2][j % 2];
-								mLeaves.push_back(leave);
-							}
-							//枝端的叶子
-							leave.pos = newState.pos;
-							leave.rotY = rotY[i % 2][j % 2];
-							mLeaves.push_back(leave);
-						}
-						else if (param.mLeafOrder == 1)
-						{
-							//对生叶序
-							Leave leave;
-							leave.rotAxis = trunk.rotAxis;
-							leave.angle = trunk.angle;
-							leave.scal = param.mLeaveSize;
-							float rotY[2][2] = { { 0.0f, XM_PI }, { XM_PI / 2.0f, XM_PI*1.5f } };
-							int j;
-							for (j = 0; j < count; j++)
-							{
-								LP = CP + CV*dt*j;
-								XMStoreFloat3(&leave.pos, LP);
-								leave.rotY = rotY[i%2][j % 2];
-								mLeaves.push_back(leave);
-
-								//相对那片
-								leave.rotY = rotY[i%2][(j + 1) % 2];
-								mLeaves.push_back(leave);
-							}
-							leave.pos = newState.pos;
-							leave.rotY = rotY[i % 2][j % 2];
-							mLeaves.push_back(leave);
-							leave.rotY = rotY[i % 2][(j + 1) % 2];
-							mLeaves.push_back(leave);
-						}
-						else if (param.mLeafOrder == 2)
-						{
-							//轮生叶序
-							dt = 0.5f;
-							count = TMP.x / dt;
-							Leave leave;
-							leave.rotAxis = trunk.rotAxis;
-							leave.angle = trunk.angle;
-							leave.scal = param.mLeaveSize;
-							float rotY[4] = { 0.0f, XM_PI / 2.0f, XM_PI , XM_PI*1.5f };
-							int j;
-							for (j = 0; j < count; j++)
-							{
-								LP = CP + CV*dt*j;
-								XMStoreFloat3(&leave.pos, LP);
-								for (int k = 0; k < 4; k++)
-								{
-									leave.rotY = rotY[k % 4];
-									mLeaves.push_back(leave);
-								}
-							}
-							leave.pos = newState.pos;
-							for (int k = 0; k < 4; k++)
-							{
-								leave.rotY = rotY[k % 4];
-								mLeaves.push_back(leave);
-							}
-
-/*
-							Leave leave1;
-							leave1.pos.x = (curState.pos.x + newState.pos.x) / 2.0f;
-							leave1.pos.y = (curState.pos.y + newState.pos.y) / 2.0f;
-							leave1.pos.z = (curState.pos.z + newState.pos.z) / 2.0f;
-							leave1.rotAxis = trunk.rotAxis;
-							leave1.angle = trunk.angle;
-							leave1.scal = param.mLeaveSize;
-
-							//两对叶子
-							leave1.rotY = 0.0f;
-							mLeaves.push_back(leave1);
-							leave1.rotY = XM_PI / 2.0f;
-							mLeaves.push_back(leave1);
-							leave1.rotY = XM_PI;
-							mLeaves.push_back(leave1);
-							leave1.rotY = XM_PI*1.5f;
-							mLeaves.push_back(leave1);
-
-							Leave leave2;
-							leave2.pos = newState.pos;
-							leave2.rotAxis = trunk.rotAxis;
-							leave2.angle = trunk.angle;
-							leave2.scal = param.mLeaveSize;
-
-							//两对叶子
-							leave2.rotY = 0.0f;
-							mLeaves.push_back(leave2);
-							leave2.rotY = XM_PI / 2.0f;
-							mLeaves.push_back(leave2);
-							leave2.rotY = XM_PI;
-							mLeaves.push_back(leave2);
-							leave2.rotY = XM_PI*1.5f;
-							mLeaves.push_back(leave2);
-							*/
-						}
+						GenerateLeaf(plantData.mLeaves, curState, newState, step, plantData.mTrunks[plantData.mTrunks.size()-1],i);
 					}
 
-					vertexs.push_back(newVer);
 					curState = newState;
 					break;
 		}
 		case 'x':
 		{
-					float tmpa = param.GetRandomAngle();
-					float angle = plantStr[++i] == '+' ? tmpa : -tmpa;
-
-					XMVECTOR OldV = XMLoadFloat3(&curState.v); 
-					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationX(angle)));
-					
-					if (param.mIsToSun)
-						ToSun(NewV, param.mSunFactor);
-
-					XMStoreFloat3(&curState.v, NewV);
+					RoteDirection('x',Lstring[++i], curState.v);
 					break;
 		}
 		case 'y':
 		{
-					float tmpa = param.GetRandomAngle();
-					float angle = plantStr[++i] == '+' ? tmpa : -tmpa;
-					XMVECTOR OldV = XMLoadFloat3(&curState.v);
-					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationY(angle)));
-					if (param.mIsToSun)
-						ToSun(NewV, param.mSunFactor);
-					XMStoreFloat3(&curState.v, NewV);
+					RoteDirection('y', Lstring[++i], curState.v);
 					break;
 		}
 		case 'z':
 		{
-					float tmpa = param.GetRandomAngle();
-					float angle = plantStr[++i] == '+' ? tmpa : -tmpa;
-					XMVECTOR OldV = XMLoadFloat3(&curState.v);
-					XMVECTOR NewV = XMVector3Normalize(XMVector3Transform(OldV, XMMatrixRotationZ(angle)));
-					if (param.mIsToSun)
-						ToSun(NewV, param.mSunFactor);
-					XMStoreFloat3(&curState.v, NewV);
+					RoteDirection('z', Lstring[++i], curState.v);
 					break;
 		}
 		case '[':
 			stateStack.push(curState);	
-			totalStepAtt *= param.mStepAtt;
-			curState.trunkScal *=param.mTrunkSizeAtt;
+			totalStepAtt *= mParam.mStepAtt;
+			curState.trunkScal *= mParam.mTrunkSizeAtt;
 			depth++;
 			break;
 		case ']':
 			curState = stateStack.top();
 			stateStack.pop();
-			totalStepAtt /= param.mStepAtt;
+			totalStepAtt /= mParam.mStepAtt;
 			depth--;
 			break;
 		default:	

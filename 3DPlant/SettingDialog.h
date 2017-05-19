@@ -44,7 +44,7 @@ public:
 	CEdit mRule4Edit;
 	CEdit mRule5Edit;
 
-	LSparameter mLSparamiter;
+
 	CEdit mStartEdit;
 	CEdit mRadiusRateEdit;
 	CButton mIsTrunkCheck;

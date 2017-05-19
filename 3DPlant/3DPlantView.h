@@ -6,6 +6,7 @@
 #include"Direct3D.h"
 #include"LSystem.h"
 #include"SettingDialog.h"
+#include "HelpDial.h"
 
 class CMy3DPlantView : public CView
 {
@@ -59,6 +60,8 @@ public:
 protected:
 //	afx_msg LRESULT OnSettingOk(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnSettingOk(WPARAM wParam, LPARAM lParam);
+public:
+	afx_msg void On32773();
 };
 
 #ifndef _DEBUG  // 3DPlantView.cpp 中的调试版本

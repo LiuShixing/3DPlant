@@ -107,6 +107,7 @@
     <ClInclude Include="ClassView.h" />
     <ClInclude Include="Direct3D.h" />
     <ClInclude Include="FileView.h" />
+    <ClInclude Include="HelpDial.h" />
     <ClInclude Include="LSystem.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="OutputWnd.h" />
@@ -125,6 +126,7 @@
     <ClCompile Include="ClassView.cpp" />
     <ClCompile Include="Direct3D.cpp" />
     <ClCompile Include="FileView.cpp" />
+    <ClCompile Include="HelpDial.cpp" />
     <ClCompile Include="LSystem.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="OutputWnd.cpp" />

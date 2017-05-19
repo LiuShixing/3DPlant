@@ -44,12 +44,12 @@ public:
 
 	bool Init(HWND mainWnd, int clientWidth, int clientHeight, const std::wstring& filename);
 	void OnResize(int clientWidth, int clientHeight);
-	void Draw(std::vector<Trunk>& trunks, std::vector<Leave>& leaves, int isDrawTrunk, int isDrawLeave);
+	void Draw(PlantData& plantData, bool isTrunk, bool isleaf);
 	bool BuildHLSL(const std::wstring& filename);
 	bool InitLayout();
-	bool CreateVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices);
+	bool CreateLinesVIBuffer(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices);
 	bool CreateTrunkVIBuffer(std::vector<Vertex::PosTex>& vertexs, std::vector<UINT>& indices);
-	bool CreateLeaveVIBuffer();
+	bool CreateLeafVIBuffer();
 	void ReleaseVIBuffer();
 
 	void CreateCylinder(float bottomRadius, float topRadius, float height, UINT sliceCount, 
@@ -84,14 +84,14 @@ private:
 	ID3DX11EffectTechnique*  mTech;
 	ID3DX11EffectTechnique*  mPosTexTech;
 
-	ID3D11Buffer*           mpVB;
-	ID3D11Buffer*           mpIB;
+	ID3D11Buffer*           mpLinesVB;
+	ID3D11Buffer*           mpLinesIB;
 
 	ID3D11Buffer*           mpTrunkVB;
 	ID3D11Buffer*           mpTrunkIB;
 
-	ID3D11Buffer*           mpLeaveVB;
-	ID3D11Buffer*           mpLeaveIB;
+	ID3D11Buffer*           mpLeafVB;
+	ID3D11Buffer*           mpLeafIB;
 
 	ID3DX11EffectMatrixVariable* mWorldViewProj;
 	ID3DX11EffectMatrixVariable* mPosTexWorldViewProj;

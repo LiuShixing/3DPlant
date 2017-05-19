@@ -29,24 +29,12 @@ z- 绕z轴逆时针旋转a度
 
 */
 
-struct State
-{
-	State()
-	{
-		pos = XMFLOAT3(0.0f,0.0f,0.0f);
-		v = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		verIndiex = 0;
-	}
-	XMFLOAT3 pos;
-	XMFLOAT3 v;
-	UINT     verIndiex;
-	float    trunkScal;
-};
 
-struct LPStr
+class RuleRight
 {
-	std::string rule;
-	float      prob;
+public:
+	std::string production;
+	float      probability;
 };
 
 class LSparameter
@@ -71,11 +59,11 @@ public:
 	float mSunFactor;
 	int  mLeafOrder;
 
-	std::map<char, std::vector<LPStr> > mRules;
+	std::map<char, std::vector<RuleRight> > mRules;
 
 	std::string GetRandomRule(char key);
 	bool       CheckParam();
-	float      GetRandomStep(float att=0.0f);  //att 是步长衰减量
+	float      GetRandomStep(float att=1.0f);  //att 是步长衰减量
 	float      GetRandomAngle();
 };
 struct Trunk
@@ -86,7 +74,7 @@ struct Trunk
 	float scalY;
 	float    angle;
 };
-struct Leave
+struct Leaf
 {
 	XMFLOAT3 pos;
 	XMFLOAT3 rotAxis;
@@ -95,16 +83,42 @@ struct Leave
 	float rotY;
 };
 
+class PlantData
+{
+public:
+	std::vector<Trunk> mTrunks;
+	std::vector<Leaf> mLeaves;
+	std::vector<Vertex::PosColor> mVertexs;
+	std::vector<UINT> mIndices;
+};
+
+struct State
+{
+	State()
+	{
+		pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		v = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		verIndiex = 0;
+	}
+	XMFLOAT3 pos;
+	XMFLOAT3 v;
+	UINT     verIndiex;
+	float    trunkScal;
+};
+
 class LSystem
 {
 public:
+	LSparameter mParam;
+
 	LSystem();
 	~LSystem();
-	void CreatePlant(std::vector<Vertex::PosColor>& vertexs, std::vector<UINT>& indices, LSparameter& param);
+	std::string GenerateLstring();
+
+	void GenerateLeaf(std::vector<Leaf>& leaves, const State& curState, const State& newState, float step, Trunk& trunk, int i);
+	void GenerateTrunk(std::vector<Trunk>& trunks, const State& curState, float step);
+	void RoteDirection(char axis,char sign,XMFLOAT3& direction);
+	void CreatePlant(PlantData& plantData);
 	void ToSun(XMVECTOR& V,float factor);
-	std::vector<Trunk> mTrunks;
-	std::vector<Leave> mLeaves;
-	std::vector<Vertex::PosColor> mVertexs;
-	std::vector<UINT> mIndices;
 };
 

@@ -177,6 +177,7 @@ END
 IDR_MAINFRAME MENU
 BEGIN
     MENUITEM "设置",                          ID_SETTING
+    MENUITEM "帮助",                          ID_32773
 END
 
 IDR_POPUP_EDIT MENU
@@ -344,6 +345,17 @@ BEGIN
     GROUPBOX        "文件",IDC_STATIC,7,279,237,25
 END
 
+IDD_HELPDIAL DIALOGEX 0, 0, 320, 200
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "对话框"
+FONT 9, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "确定",IDOK,209,179,50,14
+    PUSHBUTTON      "取消",IDCANCEL,263,179,50,14
+    LTEXT           "L系统的基本字母及其含义",IDC_STATIC,19,17,80,8
+    EDITTEXT        IDC_EDIT1,14,31,299,138,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_DISABLED
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -406,6 +418,14 @@ BEGIN
         RIGHTMARGIN, 244
         TOPMARGIN, 5
         BOTTOMMARGIN, 327
+    END
+
+    IDD_HELPDIAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 313
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
     END
 END
 #endif    // APSTUDIO_INVOKED

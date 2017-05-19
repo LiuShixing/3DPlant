@@ -25,7 +25,10 @@ SettingDialog::~SettingDialog()
 {
 	
 }
-
+extern LSystem  gLS;
+extern Direct3D gD3d;
+extern SettingDialog gSettingDia;
+extern PlantData    gPlantData;
 void SettingDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
@@ -33,48 +36,48 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	std::vector<std::string> rules(6, "");
 	float probs[6] = {0,0,0,0,0,0};
 	int index = 0;
-	for (std::map<char, std::vector<LPStr> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
+	for (std::map<char, std::vector<RuleRight> >::iterator it = gLS.mParam.mRules.begin(); it != gLS.mParam.mRules.end(); ++it)
 	{
 		char k = it->first;
 		for (int i = 0; i < it->second.size(); i++)
 		{
 			rules[index] = k;
 			rules[index] += "=";
-			rules[index] += (it->second)[i].rule;
-			probs[index] = (it->second)[i].prob;
+			rules[index] += (it->second)[i].production;
+			probs[index] = (it->second)[i].probability;
 			index++;
 		}
 	}
 
 	DDX_Control(pDX, IDC_ITERATIONS, mIterationsEdit);
-	DDX_Text(pDX, IDC_ITERATIONS, mLSparamiter.mIterations);
+	DDX_Text(pDX, IDC_ITERATIONS, gLS.mParam.mIterations);
 
 	DDX_Control(pDX, IDC_EDIT1, mStepMinEdit);
-	DDX_Text(pDX, IDC_EDIT1, mLSparamiter.mStepMin);
+	DDX_Text(pDX, IDC_EDIT1, gLS.mParam.mStepMin);
 
 	DDX_Control(pDX, IDC_EDIT7, mStepMaxEdit);
-	DDX_Text(pDX, IDC_EDIT7, mLSparamiter.mStepMax);
+	DDX_Text(pDX, IDC_EDIT7, gLS.mParam.mStepMax);
 
 	DDX_Control(pDX, IDC_EDIT13, mStepAttEdit);
-	DDX_Text(pDX, IDC_EDIT13, mLSparamiter.mStepAtt);
+	DDX_Text(pDX, IDC_EDIT13, gLS.mParam.mStepAtt);
 
 	DDX_Control(pDX, IDC_EDIT8, mRotAngleMinEdit);
-	DDX_Text(pDX, IDC_EDIT8, mLSparamiter.mRotAngleMin);
+	DDX_Text(pDX, IDC_EDIT8, gLS.mParam.mRotAngleMin);
 
 	DDX_Control(pDX, IDC_EDIT9, mRotAngleMaxEdit);
-	DDX_Text(pDX, IDC_EDIT9, mLSparamiter.mRotAngleMax);
+	DDX_Text(pDX, IDC_EDIT9, gLS.mParam.mRotAngleMax);
 
 	DDX_Control(pDX, IDC_EDIT10, mTrunkSizeEdit);
-	DDX_Text(pDX, IDC_EDIT10, mLSparamiter.mTrunkSize);
+	DDX_Text(pDX, IDC_EDIT10, gLS.mParam.mTrunkSize);
 
 	DDX_Control(pDX, IDC_EDIT14, mTrunkSizeAttEdit);
-	DDX_Text(pDX, IDC_EDIT14, mLSparamiter.mTrunkSizeAtt);
+	DDX_Text(pDX, IDC_EDIT14, gLS.mParam.mTrunkSizeAtt);
 
 	DDX_Control(pDX, IDC_EDIT12, mRadiusRateEdit);
-	DDX_Text(pDX, IDC_EDIT12, mLSparamiter.mRadiusRate);
+	DDX_Text(pDX, IDC_EDIT12, gLS.mParam.mRadiusRate);
 
 	DDX_Control(pDX, IDC_EDIT16, mLeafSizeEdit);
-	DDX_Text(pDX, IDC_EDIT16, mLSparamiter.mLeaveSize);
+	DDX_Text(pDX, IDC_EDIT16, gLS.mParam.mLeaveSize);
 
 	DDX_Control(pDX, IDC_EDIT17, mProb1Edit);
 	DDX_Text(pDX, IDC_EDIT17, probs[0]);
@@ -87,7 +90,7 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT21, mProb5Edit);
 	DDX_Text(pDX, IDC_EDIT21, probs[4]);
 
-	CString Start(mLSparamiter.mStart);
+	CString Start(gLS.mParam.mStart);
 	DDX_Control(pDX, IDC_EDIT11, mStartEdit);
 	DDX_Text(pDX, IDC_EDIT11, Start);
 
@@ -126,17 +129,17 @@ void SettingDialog::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_CHECK1, mIsTrunkCheck);
 	DDX_Control(pDX, IDC_CHECK2, mIsLeaveCheck);
-	mIsTrunkCheck.SetCheck(mLSparamiter.mIsTrunk);
-	mIsLeaveCheck.SetCheck(mLSparamiter.mIsLeave);
+	mIsTrunkCheck.SetCheck(gLS.mParam.mIsTrunk);
+	mIsLeaveCheck.SetCheck(gLS.mParam.mIsLeave);
 
 
 	DDX_Control(pDX, IDC_EDIT15, mToSunFactorEdit);
-	DDX_Text(pDX, IDC_EDIT15, mLSparamiter.mSunFactor);
+	DDX_Text(pDX, IDC_EDIT15, gLS.mParam.mSunFactor);
 
 	DDX_Control(pDX, IDC_CHECK3, mIsToSunCheck);
-	mIsToSunCheck.SetCheck(mLSparamiter.mIsToSun);
+	mIsToSunCheck.SetCheck(gLS.mParam.mIsToSun);
 
-	mLeafOrder = mLSparamiter.mLeafOrder;
+	mLeafOrder = gLS.mParam.mLeafOrder;
 
 	((CButton *)GetDlgItem(IDC_RADIO1))->SetCheck(FALSE);//没选上
 	((CButton *)GetDlgItem(IDC_RADIO2))->SetCheck(FALSE);//没选上
@@ -179,20 +182,20 @@ void SettingDialog::AddRules(CString& text,float prob)
 	if (s.length() >= 2 && s[1] == '=')
 	{
 		char k = s[0];
-		LPStr R;
+		RuleRight R;
 		std::string v(s.begin() + 2, s.end());
-		R.rule = v;
-		R.prob = prob;
-		std::map<char, std::vector<LPStr> >::iterator it = mLSparamiter.mRules.find(k);
-		if (it != mLSparamiter.mRules.end())
+		R.production = v;
+		R.probability = prob;
+		std::map<char, std::vector<RuleRight> >::iterator it = gLS.mParam.mRules.find(k);
+		if (it != gLS.mParam.mRules.end())
 		{
 			(it->second).push_back(R);
 		}
 		else
 		{
-			std::vector<LPStr> vs;
+			std::vector<RuleRight> vs;
 			vs.push_back(R);
-			mLSparamiter.mRules.insert(std::make_pair(k, vs));
+			gLS.mParam.mRules.insert(std::make_pair(k, vs));
 		}
 	}
 	else if (s.length() != 0)
@@ -208,30 +211,30 @@ void SettingDialog::OnBnClickedOk()
 
 	CString text;
 	mIterationsEdit.GetWindowText(text);
-	mLSparamiter.mIterations = _ttoi(text);
+	gLS.mParam.mIterations = _ttoi(text);
 	
 	mStepMinEdit.GetWindowText(text); 
-	mLSparamiter.mStepMin = _ttof(text);
+	gLS.mParam.mStepMin = _ttof(text);
 	mStepMaxEdit.GetWindowText(text);
-	mLSparamiter.mStepMax = _ttof(text);
+	gLS.mParam.mStepMax = _ttof(text);
 	mStepAttEdit.GetWindowText(text);
-	mLSparamiter.mStepAtt = _ttof(text);
+	gLS.mParam.mStepAtt = _ttof(text);
 	mRotAngleMinEdit.GetWindowText(text);
-	mLSparamiter.mRotAngleMin = _ttof(text);
+	gLS.mParam.mRotAngleMin = _ttof(text);
 	mRotAngleMaxEdit.GetWindowText(text);
-	mLSparamiter.mRotAngleMax = _ttof(text);
+	gLS.mParam.mRotAngleMax = _ttof(text);
 	mTrunkSizeEdit.GetWindowText(text);
-	mLSparamiter.mTrunkSize = _ttof(text);
+	gLS.mParam.mTrunkSize = _ttof(text);
 	mTrunkSizeAttEdit.GetWindowText(text);
-	mLSparamiter.mTrunkSizeAtt = _ttof(text);
+	gLS.mParam.mTrunkSizeAtt = _ttof(text);
 	mRadiusRateEdit.GetWindowText(text);
-	mLSparamiter.mRadiusRate = _ttof(text);
+	gLS.mParam.mRadiusRate = _ttof(text);
 
 	mToSunFactorEdit.GetWindowText(text);
-	mLSparamiter.mSunFactor = _ttof(text);
+	gLS.mParam.mSunFactor = _ttof(text);
 
 	mLeafSizeEdit.GetWindowText(text);
-	mLSparamiter.mLeaveSize = _ttof(text);
+	gLS.mParam.mLeaveSize = _ttof(text);
 
 	mProb1Edit.GetWindowText(text);
 	float prob1 = _ttof(text);
@@ -244,18 +247,18 @@ void SettingDialog::OnBnClickedOk()
 	mProb5Edit.GetWindowText(text);
 	float prob5 = _ttof(text);
 
-	mLSparamiter.mIsToSun = mIsToSunCheck.GetCheck();
+	gLS.mParam.mIsToSun = mIsToSunCheck.GetCheck();
 
-	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
-	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
+	gLS.mParam.mIsTrunk = mIsTrunkCheck.GetCheck();
+	gLS.mParam.mIsLeave = mIsLeaveCheck.GetCheck();
 
-	mLSparamiter.mLeafOrder = mLeafOrder;
+	gLS.mParam.mLeafOrder = mLeafOrder;
 	
-	std::cout << "mLSparamiter.mLeafOrder " << mLSparamiter.mLeafOrder << std::endl;
+//	std::cout << "mLSparamiter.mLeafOrder " << gLS.mParam.mLeafOrder << std::endl;
 	mStartEdit.GetWindowText(text);
-	mLSparamiter.mStart = text[0];
+	gLS.mParam.mStart = text[0];
 
-	mLSparamiter.mRules.clear();
+	gLS.mParam.mRules.clear();
 	mRule1Edit.GetWindowText(text);
 	AddRules(text, prob1);
 	mRule2Edit.GetWindowText(text);
@@ -268,9 +271,9 @@ void SettingDialog::OnBnClickedOk()
 	AddRules(text, prob5);
 
 	//--
-	if (mLSparamiter.mStart != ' ' && mLSparamiter.mRules.size() > 0)
+	if (gLS.mParam.mStart != ' ' && gLS.mParam.mRules.size() > 0)
 	{
-		if (mLSparamiter.CheckParam())
+		if (gLS.mParam.CheckParam())
 		{
 			mpSettingOkClick();
 		}
@@ -285,9 +288,7 @@ void SettingDialog::OnBnClickedOk()
 	}
 }
 
-extern LSystem  gLS;
-extern Direct3D gD3d;
-extern SettingDialog gSettingDia;
+
 
 void SettingDialog::OnBnClickedOpen()
 {
@@ -311,95 +312,95 @@ void SettingDialog::OnBnClickedOpen()
 		std::ifstream is(filePath);
 
 		std::string ignore;
-		is >> ignore >> mLSparamiter.mIterations
-			>> ignore >> mLSparamiter.mStepMin
-			>> ignore >> mLSparamiter.mStepMax
-			>> ignore >> mLSparamiter.mStepAtt
-			>> ignore >> mLSparamiter.mRotAngleMin
-			>> ignore >> mLSparamiter.mRotAngleMax
-			>> ignore >> mLSparamiter.mTrunkSize
-			>> ignore >> mLSparamiter.mTrunkSizeAtt
-			>> ignore >> mLSparamiter.mRadiusRate
-			>> ignore >> mLSparamiter.mLeaveSize
-			>> ignore >> mLSparamiter.mStart
-			>> ignore >> mLSparamiter.mIsTrunk
-			>> ignore >> mLSparamiter.mIsLeave
-			>> ignore >> mLSparamiter.mIsToSun
-			>> ignore >> mLSparamiter.mSunFactor
-			>> ignore >> mLSparamiter.mLeafOrder;
+		is >> ignore >> gLS.mParam.mIterations
+			>> ignore >> gLS.mParam.mStepMin
+			>> ignore >> gLS.mParam.mStepMax
+			>> ignore >> gLS.mParam.mStepAtt
+			>> ignore >> gLS.mParam.mRotAngleMin
+			>> ignore >> gLS.mParam.mRotAngleMax
+			>> ignore >> gLS.mParam.mTrunkSize
+			>> ignore >> gLS.mParam.mTrunkSizeAtt
+			>> ignore >> gLS.mParam.mRadiusRate
+			>> ignore >> gLS.mParam.mLeaveSize
+			>> ignore >> gLS.mParam.mStart
+			>> ignore >> gLS.mParam.mIsTrunk
+			>> ignore >> gLS.mParam.mIsLeave
+			>> ignore >> gLS.mParam.mIsToSun
+			>> ignore >> gLS.mParam.mSunFactor
+			>> ignore >> gLS.mParam.mLeafOrder;
 
 		int rulesCount;
 		is >> ignore >> rulesCount;
-		mLSparamiter.mRules.clear();
+		gLS.mParam.mRules.clear();
 		for (int i = 0; i < rulesCount; i++)
 		{
 			char k;
 			is >> ignore >> k;
 			int count;
 			is >> count;
-			std::vector<LPStr> vs;
+			std::vector<RuleRight> vs;
 			for (int j = 0; j < count; j++)
 			{
-				LPStr s;
-				is >> s.rule;
-				is >> s.prob;
+				RuleRight s;
+				is >> s.production;
+				is >> s.probability;
 				vs.push_back(s);
 			}
-			mLSparamiter.mRules.insert(std::make_pair(k, vs));
+			gLS.mParam.mRules.insert(std::make_pair(k, vs));
 		}
 
 		int vertexsCount;
 		is >> ignore >> vertexsCount;
-		gLS.mVertexs.clear();
-		gLS.mVertexs.resize(vertexsCount);
+		gPlantData.mVertexs.clear();
+		gPlantData.mVertexs.resize(vertexsCount);
 		for (int i = 0; i < vertexsCount; i++)
 		{
 			XMFLOAT3 p;
 			XMFLOAT4 c;
 			is >> p.x >> p.y >> p.z;
 			is >> c.x >> c.y >> c.z >> c.w;
-			gLS.mVertexs[i].pos = p;
-			gLS.mVertexs[i].color = c;
+			gPlantData.mVertexs[i].pos = p;
+			gPlantData.mVertexs[i].color = c;
 		}
 
 		int indexCount;
 		is >> ignore >> indexCount;
-		gLS.mIndices.resize(indexCount);
+		gPlantData.mIndices.resize(indexCount);
 		for (int i = 0; i < indexCount; i++)
 		{
-			is >> gLS.mIndices[i];
+			is >> gPlantData.mIndices[i];
 		}
 	
 		int trunkCount;
 		is >> ignore >> trunkCount;
-		gLS.mTrunks.resize(trunkCount);
+		gPlantData.mTrunks.resize(trunkCount);
 		for (int i = 0; i < trunkCount; i++)
 		{
 			XMFLOAT3 p;
 			XMFLOAT3 r;
 			is >> p.x >> p.y >> p.z;
 			is >> r.x >> r.y >> r.z;
-			gLS.mTrunks[i].pos = p;
-			gLS.mTrunks[i].rotAxis = r;
-			is >> gLS.mTrunks[i].sizeScal
-				>> gLS.mTrunks[i].scalY
-				>> gLS.mTrunks[i].angle;
+			gPlantData.mTrunks[i].pos = p;
+			gPlantData.mTrunks[i].rotAxis = r;
+			is >> gPlantData.mTrunks[i].sizeScal
+				>> gPlantData.mTrunks[i].scalY
+				>> gPlantData.mTrunks[i].angle;
 		}
 		
 		int leafCount;
 		is >> ignore >> leafCount;
-		gLS.mLeaves.resize(leafCount);
+		gPlantData.mLeaves.resize(leafCount);
 		for (int i = 0; i < leafCount; i++)
 		{
 			XMFLOAT3 p;
 			XMFLOAT3 r;
 			is >> p.x >> p.y >> p.z;
 			is >> r.x >> r.y >> r.z;
-			gLS.mLeaves[i].pos = p;
-			gLS.mLeaves[i].rotAxis = r;
-			is >> gLS.mLeaves[i].scal
-				>> gLS.mLeaves[i].angle
-				>> gLS.mLeaves[i].rotY;
+			gPlantData.mLeaves[i].pos = p;
+			gPlantData.mLeaves[i].rotAxis = r;
+			is >> gPlantData.mLeaves[i].scal
+				>> gPlantData.mLeaves[i].angle
+				>> gPlantData.mLeaves[i].rotY;
 
 		}
 
@@ -432,77 +433,77 @@ void SettingDialog::OnBnClickedSave()
 		std::ofstream os(filePath);
 
 		using namespace std;
-		os << "Iterations: " << mLSparamiter.mIterations << endl
-			<< "StepMin: " << mLSparamiter.mStepMin << endl
-			<< "StepMax: " << mLSparamiter.mStepMax << endl
-			<< "StepAtt: " << mLSparamiter.mStepAtt << endl
-			<< "RotAngleMin: " << mLSparamiter.mRotAngleMin << endl
-			<< "RotAngleMax: " << mLSparamiter.mRotAngleMax << endl
-			<< "TrunkSize: " << mLSparamiter.mTrunkSize << endl
-			<< "TrunkSizeAtt: " << mLSparamiter.mTrunkSizeAtt << endl
-			<< "RadiusRate: " << mLSparamiter.mRadiusRate << endl
-			<< "LeaveSize: " << mLSparamiter.mLeaveSize << endl
-			<< "Start: " << mLSparamiter.mStart << endl
-			<< "IsTrunk: " << mLSparamiter.mIsTrunk << endl
-			<< "IsLeave: " << mLSparamiter.mIsLeave << endl
-			<< "IsToSun: " << mLSparamiter.mIsToSun << endl
-			<< "SunFactor: " << mLSparamiter.mSunFactor << endl
-			<< "LeafOrder: " << mLSparamiter.mLeafOrder << endl;
+		os << "Iterations: " << gLS.mParam.mIterations << endl
+			<< "StepMin: " << gLS.mParam.mStepMin << endl
+			<< "StepMax: " << gLS.mParam.mStepMax << endl
+			<< "StepAtt: " << gLS.mParam.mStepAtt << endl
+			<< "RotAngleMin: " << gLS.mParam.mRotAngleMin << endl
+			<< "RotAngleMax: " << gLS.mParam.mRotAngleMax << endl
+			<< "TrunkSize: " << gLS.mParam.mTrunkSize << endl
+			<< "TrunkSizeAtt: " << gLS.mParam.mTrunkSizeAtt << endl
+			<< "RadiusRate: " << gLS.mParam.mRadiusRate << endl
+			<< "LeaveSize: " << gLS.mParam.mLeaveSize << endl
+			<< "Start: " << gLS.mParam.mStart << endl
+			<< "IsTrunk: " << gLS.mParam.mIsTrunk << endl
+			<< "IsLeave: " << gLS.mParam.mIsLeave << endl
+			<< "IsToSun: " << gLS.mParam.mIsToSun << endl
+			<< "SunFactor: " << gLS.mParam.mSunFactor << endl
+			<< "LeafOrder: " << gLS.mParam.mLeafOrder << endl;
 		os << endl;
-		os << "RulesCount: "<<mLSparamiter.mRules.size() << endl;
-		for (std::map<char, std::vector<LPStr> >::iterator it = mLSparamiter.mRules.begin(); it != mLSparamiter.mRules.end(); ++it)
+		os << "RulesCount: " << gLS.mParam.mRules.size() << endl;
+		for (std::map<char, std::vector<RuleRight> >::iterator it = gLS.mParam.mRules.begin(); it != gLS.mParam.mRules.end(); ++it)
 		{
 			char k = it->first;
-			vector<LPStr> vs = it->second;
+			vector<RuleRight> vs = it->second;
 
 			os << "key: " << k << endl;
 			os << vs.size() << endl;
 			for (int i = 0; i < vs.size(); i++)
 			{
-				os << vs[i].rule << endl;
-				os << vs[i].prob << endl;
+				os << vs[i].production << endl;
+				os << vs[i].probability << endl;
 			}
 			os << endl;
 		}
 
 
-		os << "vertexsCount: " << gLS.mVertexs.size() << endl;
-		for (int i = 0; i < gLS.mVertexs.size(); i++)
+		os << "vertexsCount: " << gPlantData.mVertexs.size() << endl;
+		for (int i = 0; i < gPlantData.mVertexs.size(); i++)
 		{
-			XMFLOAT3 p = gLS.mVertexs[i].pos;
-			XMFLOAT4 c = gLS.mVertexs[i].color;
+			XMFLOAT3 p = gPlantData.mVertexs[i].pos;
+			XMFLOAT4 c = gPlantData.mVertexs[i].color;
 			os << p.x << " " << p.y << " " << p.z << endl;
 			os << c.x << " " << c.y << " " << c.z << " " << c.w << endl;
 		}
 
-		os << "indexCount: " << gLS.mIndices.size() << endl;
-		for (int i = 0; i < gLS.mIndices.size(); i++)
-			os << gLS.mIndices[i] << " ";
+		os << "indexCount: " << gPlantData.mIndices.size() << endl;
+		for (int i = 0; i < gPlantData.mIndices.size(); i++)
+			os << gPlantData.mIndices[i] << " ";
 		os << endl;
 
-		os << "trunkCount: " << gLS.mTrunks.size() << endl;
-		for (int i = 0; i < gLS.mTrunks.size(); i++)
+		os << "trunkCount: " << gPlantData.mTrunks.size() << endl;
+		for (int i = 0; i < gPlantData.mTrunks.size(); i++)
 		{
-			XMFLOAT3 p = gLS.mTrunks[i].pos;
-			XMFLOAT3 r = gLS.mTrunks[i].rotAxis;
+			XMFLOAT3 p = gPlantData.mTrunks[i].pos;
+			XMFLOAT3 r = gPlantData.mTrunks[i].rotAxis;
 			os << p.x << " " << p.y << " " << p.z << endl;
 			os << r.x << " " << r.y << " " << r.z << endl;
-			os << gLS.mTrunks[i].sizeScal << endl
-				<< gLS.mTrunks[i].scalY << endl
-				<< gLS.mTrunks[i].angle << endl;
+			os << gPlantData.mTrunks[i].sizeScal << endl
+				<< gPlantData.mTrunks[i].scalY << endl
+				<< gPlantData.mTrunks[i].angle << endl;
 		}
 		os << endl;
 
-		os << "leafCount: " << gLS.mLeaves.size() << endl;
-		for (int i = 0; i < gLS.mLeaves.size(); i++)
+		os << "leafCount: " << gPlantData.mLeaves.size() << endl;
+		for (int i = 0; i < gPlantData.mLeaves.size(); i++)
 		{
-			XMFLOAT3 p = gLS.mLeaves[i].pos;
-			XMFLOAT3 r = gLS.mLeaves[i].rotAxis;
+			XMFLOAT3 p = gPlantData.mLeaves[i].pos;
+			XMFLOAT3 r = gPlantData.mLeaves[i].rotAxis;
 			os << p.x << " " << p.y << " " << p.z << endl;
 			os << r.x << " " << r.y << " " << r.z << endl;
-			os << gLS.mLeaves[i].scal << endl
-				<< gLS.mLeaves[i].angle << endl
-				<< gLS.mLeaves[i].rotY << endl;
+			os << gPlantData.mLeaves[i].scal << endl
+				<< gPlantData.mLeaves[i].angle << endl
+				<< gPlantData.mLeaves[i].rotY << endl;
 		}
 		os << endl;
 
@@ -518,15 +519,15 @@ void SettingDialog::OnBnClickedSave()
 
 void SettingDialog::OnBnClickedCheck1()
 {
-	mLSparamiter.mIsTrunk = mIsTrunkCheck.GetCheck();
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gLS.mParam.mIsTrunk = mIsTrunkCheck.GetCheck();
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 }
 
 
 void SettingDialog::OnBnClickedCheck2()
 {
-	mLSparamiter.mIsLeave = mIsLeaveCheck.GetCheck();
-	gD3d.Draw(gLS.mTrunks, gLS.mLeaves, gSettingDia.mLSparamiter.mIsTrunk, gSettingDia.mLSparamiter.mIsLeave);
+	gLS.mParam.mIsLeave = mIsLeaveCheck.GetCheck();
+	gD3d.Draw(gPlantData, gLS.mParam.mIsTrunk, gLS.mParam.mIsLeave);
 }
 
 
